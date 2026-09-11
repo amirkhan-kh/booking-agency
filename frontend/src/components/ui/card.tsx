@@ -33,32 +33,50 @@ export function StatCard({
   accent = "teal",
   className,
 }: StatCardProps) {
-  const glow =
-    accent === "teal"
-      ? "from-[rgba(46,196,182,0.25)]"
-      : accent === "warm"
-        ? "from-[rgba(240,160,106,0.28)]"
-        : "from-[rgba(90,150,230,0.28)]";
+  const isBlue = accent !== "warm";
 
   return (
     <Card
       className={cn(
         "relative overflow-hidden p-5 transition-transform duration-300 hover:-translate-y-1",
+        isBlue
+          ? "panel-blue border-transparent"
+          : "bg-[var(--bg-soft)]",
         className,
       )}
     >
-      <div
+      {!isBlue ? (
+        <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--accent),var(--accent-deep))]" />
+      ) : (
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,transparent_28%,rgba(255,255,255,0.08)_52%,rgba(255,255,255,0.28)_100%)]" />
+      )}
+      <p
         className={cn(
-          "pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-gradient-to-br to-transparent blur-2xl",
-          glow,
+          "text-sm",
+          isBlue ? "text-[var(--text-muted-on-blue)]" : "text-[var(--text-muted)]",
         )}
-      />
-      <p className="text-sm text-[var(--text-muted)]">{label}</p>
-      <p className="mt-2 font-sans text-3xl font-semibold tracking-tight tabular-nums [font-variant-numeric:tabular-nums_lining-nums]">
+      >
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mt-2 font-sans text-3xl font-semibold tracking-tight tabular-nums [font-variant-numeric:tabular-nums_lining-nums]",
+          isBlue && "text-white",
+        )}
+      >
         {value}
       </p>
       {hint ? (
-        <p className="mt-2 text-xs text-[var(--text-muted)]">{hint}</p>
+        <p
+          className={cn(
+            "mt-2 text-xs",
+            isBlue
+              ? "text-[var(--text-muted-on-blue)]"
+              : "text-[var(--text-muted)]",
+          )}
+        >
+          {hint}
+        </p>
       ) : null}
     </Card>
   );
@@ -76,7 +94,7 @@ export function SectionTitle({
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-[var(--accent-deep)] md:text-3xl">
           {title}
         </h1>
         {subtitle ? (

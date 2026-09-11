@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { SectionTitle } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { getSession } from "@/lib/auth";
+import { bookingStatusLabel } from "@/lib/booking-status";
 import { MOCK_BOOKINGS } from "@/lib/mock-data";
 
 function statusTone(status: string) {
@@ -21,13 +22,15 @@ export default async function BookingsPage() {
     id: b.id,
     customer: <span className="font-medium">{b.customer}</span>,
     route: (
-      <span className="rounded-lg bg-white/8 px-2 py-1 font-mono text-xs text-[var(--accent-soft)]">
+      <span className="rounded-lg bg-[rgba(35,111,241,0.08)] px-2 py-1 font-mono text-xs text-[var(--accent-deep)]">
         {b.route}
       </span>
     ),
     date: b.date,
-    amount: <span className="text-[var(--warm-soft)]">{b.amount}</span>,
-    status: <Badge tone={statusTone(b.status)}>{b.status}</Badge>,
+    amount: <span className="font-medium text-[var(--accent)]">{b.amount}</span>,
+    status: (
+      <Badge tone={statusTone(b.status)}>{bookingStatusLabel(b.status)}</Badge>
+    ),
   }));
 
   return (
@@ -35,7 +38,7 @@ export default async function BookingsPage() {
       <Header title="Bronlar" role={session.role} />
       <SectionTitle
         title="Ticket bronlari"
-        subtitle="Status badge va glass jadval."
+        subtitle="Status badge va jadval ko‘rinishi."
       />
       <Table
         columns={[

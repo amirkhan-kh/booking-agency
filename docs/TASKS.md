@@ -34,7 +34,7 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 ## Phase 4 — CRM modullari (UI)
 
 - [x] 4.1 Customers: ro'yxat jadvali
-- [ ] 4.2 Customers: yaratish/tahrirlash formasi + detal sahifa
+- [x] 4.2 Customers: yaratish/tahrirlash formasi + detal sahifa
 - [x] 4.3 Bookings: ro'yxat jadvali (status badge bilan)
 - [ ] 4.4 Bookings: yaratish/tahrirlash formasi + detal sahifa
 - [ ] 4.5 Bookings: status o'zgartirish amali

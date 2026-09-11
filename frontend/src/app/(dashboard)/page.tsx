@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/header";
 import { Card, SectionTitle, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth";
+import { bookingStatusLabel } from "@/lib/booking-status";
 import { getStats, MOCK_BOOKINGS, MOCK_LEADS } from "@/lib/mock-data";
 
 export default async function DashboardPage() {
@@ -87,7 +88,7 @@ export default async function DashboardPage() {
             {MOCK_LEADS.slice(0, 4).map((lead) => (
               <li
                 key={lead.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2.5"
+                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--glass-border)] bg-[var(--bg-soft)] px-3 py-2.5"
               >
                 <div>
                   <p className="text-sm font-medium">{lead.name}</p>
@@ -107,7 +108,7 @@ export default async function DashboardPage() {
             {MOCK_BOOKINGS.slice(0, 4).map((b) => (
               <li
                 key={b.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2.5"
+                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--glass-border)] bg-[var(--bg-soft)] px-3 py-2.5"
               >
                 <div>
                   <p className="text-sm font-medium">{b.customer}</p>
@@ -121,10 +122,12 @@ export default async function DashboardPage() {
                       ? "ok"
                       : b.status === "cancelled"
                         ? "danger"
-                        : "warm"
+                        : b.status === "confirmed"
+                          ? "accent"
+                          : "warm"
                   }
                 >
-                  {b.status}
+                  {bookingStatusLabel(b.status)}
                 </Badge>
               </li>
             ))}
