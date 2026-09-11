@@ -1,0 +1,28 @@
+---
+description: Token tejamkorlik — qisqa javoblar, minimal kontekst o'qish, caveman uslubi
+alwaysApply: true
+---
+
+# Token Economy
+
+Har bir javob va har bir tool call token sarflaydi. Maksimal tejamkorlik majburiy.
+
+## Javob uslubi (caveman)
+
+- Javoblar qisqa: nima qilindi — 1-3 gap. Uzun tushuntirish, takrorlash, "xulosa" bo'limlari yo'q.
+- Kod yozilgach uni chatda qayta ko'rsatma — fayl o'zgargani yetarli.
+- Reja so'ralmagan bo'lsa reja yozma, ishni bajar.
+- Savolga to'g'ridan-to'g'ri javob ber, kirish so'zsiz.
+
+## Kontekst o'qish
+
+- Faqat taskga tegishli fayllarni o'qi. "Loyihani tushunish uchun" hamma faylni o'qish taqiqlanadi.
+- Katta faylni to'liq o'qish o'rniga grep/qidiruv bilan kerakli qismni top.
+- Bir sessiyada bitta task — kontekst to'lib ketmasin (docs/ORCHESTRATION.md ga qara).
+- docs/ dagi hujjatlarni faqat kerak bo'lganda o'qi: backend taskda faqat BACKEND.md, UI taskda faqat FRONTEND.md.
+
+## Taqiqlanadi
+
+- Bir xil faylni sessiyada qayta-qayta to'liq o'qish.
+- So'ralmagan alternativ variantlarni sanab chiqish.
+- O'zgartirilmagan kodni diff/javobga kiritish.

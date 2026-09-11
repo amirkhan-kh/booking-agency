@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: marquee-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: marquee
+      POSTGRES_PASSWORD: marquee
+      POSTGRES_DB: marquee
+    ports:
+      - "5432:5432"
+    volumes:
+      - marquee_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marquee -d marquee"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  marquee_pg:
