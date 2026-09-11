@@ -54,7 +54,7 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="mt-6 space-y-2 rounded-xl border border-[var(--glass-border)] bg-[var(--bg)] p-3 text-xs text-[var(--text-muted)]">
+        {/* <div className="mt-6 space-y-2 rounded-xl border border-[var(--glass-border)] bg-[var(--bg)] p-3 text-xs text-[var(--text-muted)]">
           <p>
             <span className="font-medium text-[var(--accent)]">Admin:</span>{" "}
             admin@agency.uz / admin123
@@ -65,7 +65,7 @@ export default function LoginPage() {
             </span>{" "}
             employee@agency.uz / emp123
           </p>
-        </div>
+        </div> */}
       </Card>
     </div>
   );
