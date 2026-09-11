@@ -1,0 +1,136 @@
+import { redirect } from "next/navigation";
+import { Header } from "@/components/layout/header";
+import { Card, SectionTitle, StatCard } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { getSession } from "@/lib/auth";
+import { getStats, MOCK_BOOKINGS, MOCK_LEADS } from "@/lib/mock-data";
+
+export default async function DashboardPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  const stats = getStats(session.role);
+  const isAdmin = session.role === "admin";
+
+  return (
+    <>
+      <Header title="Umumiy statistika" role={session.role} />
+      <SectionTitle
+        title={`Salom, ${session.name.split(" ")[0]}`}
+        subtitle={
+          isAdmin
+            ? "To‘liq agentlik ko‘rinishi — ish oqimi va moliyaviy holat."
+            : "Ish stoli — lidlar, bronlar va kunlik vazifalar."
+        }
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          className="animate-fade-up stagger-1"
+          label="Yangi lidlar"
+          value={stats.leads}
+          hint="Shu oy"
+          accent="teal"
+        />
+        <StatCard
+          className="animate-fade-up stagger-2"
+          label="Faol bronlar"
+          value={stats.activeBookings}
+          hint="Jarayonda"
+          accent="blue"
+        />
+        <StatCard
+          className="animate-fade-up stagger-3"
+          label="Vazifalar"
+          value={stats.tasksDue}
+          hint="Bugun / ertaga"
+          accent="warm"
+        />
+        <StatCard
+          className="animate-fade-up stagger-4"
+          label="Konversiya"
+          value={stats.conversion}
+          hint="Lid → bron"
+          accent="teal"
+        />
+      </div>
+
+      {isAdmin ? (
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <StatCard
+            className="animate-fade-up stagger-2"
+            label="Tushum"
+            value={stats.revenue ?? "—"}
+            hint="Admin ko‘rinishi"
+            accent="teal"
+          />
+          <StatCard
+            className="animate-fade-up stagger-3"
+            label="Harajatlar"
+            value={stats.expenses ?? "—"}
+            hint="Faqat admin"
+            accent="warm"
+          />
+          <StatCard
+            className="animate-fade-up stagger-4"
+            label="Foyda"
+            value={stats.profit ?? "—"}
+            hint="Sof balans"
+            accent="blue"
+          />
+        </div>
+      ) : null}
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <Card className="animate-fade-up stagger-3 p-5">
+          <h3 className="font-display text-lg font-semibold">So‘nggi lidlar</h3>
+          <ul className="mt-4 space-y-3">
+            {MOCK_LEADS.slice(0, 4).map((lead) => (
+              <li
+                key={lead.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2.5"
+              >
+                <div>
+                  <p className="text-sm font-medium">{lead.name}</p>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {lead.destination} · {lead.budget}
+                  </p>
+                </div>
+                <Badge tone="accent">{lead.status}</Badge>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card className="animate-fade-up stagger-4 p-5">
+          <h3 className="font-display text-lg font-semibold">So‘nggi bronlar</h3>
+          <ul className="mt-4 space-y-3">
+            {MOCK_BOOKINGS.slice(0, 4).map((b) => (
+              <li
+                key={b.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2.5"
+              >
+                <div>
+                  <p className="text-sm font-medium">{b.customer}</p>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {b.route} · {b.date}
+                  </p>
+                </div>
+                <Badge
+                  tone={
+                    b.status === "paid" || b.status === "completed"
+                      ? "ok"
+                      : b.status === "cancelled"
+                        ? "danger"
+                        : "warm"
+                  }
+                >
+                  {b.status}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
+    </>
+  );
+}

@@ -10,7 +10,7 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 
 - [ ] 1.1 `backend/` skelet: uv init, FastAPI + stack o'rnatish, `app/main.py` health endpoint, `core/config.py`, `core/database.py`
 - [ ] 1.2 Alembic sozlash, bo'sh birinchi migratsiya
-- [ ] 1.3 `frontend/` skelet: create-next-app (docs/FRONTEND.md dagi buyruq), papkalar, `lib/api.ts`
+- [x] 1.3 `frontend/` skelet: create-next-app (docs/FRONTEND.md dagi buyruq), papkalar, `lib/api.ts`
 - [ ] 1.4 CORS + frontend↔backend health tekshiruv
 
 ## Phase 2 — Backend core
@@ -26,16 +26,16 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 
 ## Phase 3 — Frontend core
 
-- [ ] 3.1 `components/ui/` primitivlar: button, input, table, badge (Tailwind, minimal)
-- [ ] 3.2 Login sahifasi + auth Server Action + middleware redirect
-- [ ] 3.3 Dashboard layout: sidebar + header
-- [ ] 3.4 Dashboard sahifasi (statistika kartalari)
+- [x] 3.1 `components/ui/` primitivlar: button, input, table, badge (Tailwind, minimal)
+- [x] 3.2 Login sahifasi + auth Server Action + middleware redirect
+- [x] 3.3 Dashboard layout: sidebar + header
+- [x] 3.4 Dashboard sahifasi (statistika kartalari)
 
 ## Phase 4 — CRM modullari (UI)
 
-- [ ] 4.1 Customers: ro'yxat jadvali
+- [x] 4.1 Customers: ro'yxat jadvali
 - [ ] 4.2 Customers: yaratish/tahrirlash formasi + detal sahifa
-- [ ] 4.3 Bookings: ro'yxat jadvali (status badge bilan)
+- [x] 4.3 Bookings: ro'yxat jadvali (status badge bilan)
 - [ ] 4.4 Bookings: yaratish/tahrirlash formasi + detal sahifa
 - [ ] 4.5 Bookings: status o'zgartirish amali
 - [ ] 4.6 Payments: ro'yxat + bronga to'lov qo'shish
