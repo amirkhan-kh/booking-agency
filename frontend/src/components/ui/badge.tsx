@@ -6,18 +6,22 @@ type Props = HTMLAttributes<HTMLSpanElement> & {
 };
 
 const tones: Record<NonNullable<Props["tone"]>, string> = {
-  accent: "bg-[rgba(46,196,182,0.18)] text-[var(--accent-soft)] border-[rgba(46,196,182,0.35)]",
-  warm: "bg-[rgba(240,160,106,0.18)] text-[var(--warm-soft)] border-[rgba(240,160,106,0.35)]",
-  muted: "bg-white/8 text-[var(--text-muted)] border-white/15",
-  danger: "bg-[rgba(255,107,122,0.18)] text-[#ffb0b8] border-[rgba(255,107,122,0.35)]",
-  ok: "bg-[rgba(80,220,140,0.18)] text-[#9ef0c0] border-[rgba(80,220,140,0.35)]",
+  accent:
+    "bg-[rgba(35,111,241,0.1)] text-[var(--accent-deep)] border-[rgba(35,111,241,0.2)]",
+  warm:
+    "bg-[rgba(32,94,238,0.08)] text-[var(--accent)] border-[rgba(32,94,238,0.16)]",
+  muted:
+    "bg-[var(--bg)] text-[var(--text-muted)] border-[var(--glass-border)]",
+  danger:
+    "bg-[rgba(225,29,72,0.08)] text-[var(--danger)] border-[rgba(225,29,72,0.2)]",
+  ok: "bg-[rgba(15,159,110,0.08)] text-[var(--ok)] border-[rgba(15,159,110,0.2)]",
 };
 
 export function Badge({ className, tone = "muted", ...props }: Props) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-lg border px-2 py-0.5 text-xs font-medium backdrop-blur-md",
+        "inline-flex items-center rounded-lg border px-2 py-0.5 text-xs font-medium",
         tones[tone],
         className,
       )}

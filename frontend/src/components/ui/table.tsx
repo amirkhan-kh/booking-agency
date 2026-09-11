@@ -18,7 +18,7 @@ export function Table({ columns, rows }: Props) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-white/10 bg-white/[0.04]">
+            <tr className="border-b border-[var(--glass-border)] bg-[linear-gradient(90deg,rgba(35,111,241,0.12),rgba(32,94,238,0.06))]">
               {columns.map((c) => (
                 <th
                   key={c.key}
@@ -37,8 +37,8 @@ export function Table({ columns, rows }: Props) {
               <tr
                 key={row.id}
                 className={cn(
-                  "border-b border-white/[0.06] transition-colors duration-200 hover:bg-white/[0.06]",
-                  i % 2 === 1 && "bg-white/[0.02]",
+                  "border-b border-[var(--glass-border)] transition-colors duration-200 hover:bg-[var(--bg-soft)]",
+                  i % 2 === 1 && "bg-[var(--bg)]/50",
                 )}
               >
                 {columns.map((c) => (
