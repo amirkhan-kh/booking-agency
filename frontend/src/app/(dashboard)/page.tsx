@@ -4,6 +4,7 @@ import { Card, SectionTitle, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth";
 import { bookingStatusLabel } from "@/lib/booking-status";
+import { leadStatusLabel } from "@/lib/lead-status";
 import { getStats, MOCK_BOOKINGS, MOCK_LEADS } from "@/lib/mock-data";
 
 export default async function DashboardPage() {
@@ -20,7 +21,7 @@ export default async function DashboardPage() {
         subtitle={
           isAdmin
             ? "To‘liq agentlik ko‘rinishi — ish oqimi va moliyaviy holat."
-            : "Ish stoli — lidlar, bronlar va kunlik vazifalar."
+            : "Ish stoli — lidlar, turlar va bronlar."
         }
       />
 
@@ -41,9 +42,9 @@ export default async function DashboardPage() {
         />
         <StatCard
           className="animate-fade-up stagger-3"
-          label="Vazifalar"
+          label="Turlar"
           value={stats.tasksDue}
-          hint="Bugun / ertaga"
+          hint="Katalogdagi turlar"
           accent="warm"
         />
         <StatCard
@@ -93,10 +94,10 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-sm font-medium">{lead.name}</p>
                   <p className="text-xs text-[var(--text-muted)]">
-                    {lead.destination} · {lead.budget}
+                    {lead.city || lead.country} · ${lead.grossPrice}
                   </p>
                 </div>
-                <Badge tone="accent">{lead.status}</Badge>
+                <Badge tone="accent">{leadStatusLabel(lead.status)}</Badge>
               </li>
             ))}
           </ul>

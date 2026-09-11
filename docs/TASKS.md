@@ -39,7 +39,8 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 - [ ] 4.4 Bookings: yaratish/tahrirlash formasi + detal sahifa
 - [ ] 4.5 Bookings: status o'zgartirish amali
 - [ ] 4.6 Payments: ro'yxat + bronga to'lov qo'shish
-- [ ] 4.7 Tasks: ro'yxat + yaratish + bajarildi belgilash
+- [x] 4.7 Tasks o‘rniga Turlar UI + Lidlar/Kanban CRUD (local)
+- [x] 4.7a Vazifalar sahifasi olib tashlandi
 
 ## Phase 5 — Yakunlash
 

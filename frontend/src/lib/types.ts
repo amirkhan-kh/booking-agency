@@ -8,22 +8,49 @@ export type User = {
 };
 
 export type LeadStatus =
-  | "new"
-  | "contacted"
-  | "qualified"
-  | "negotiation"
-  | "won"
-  | "lost";
+  | "new_lead"
+  | "proposal_sent"
+  | "booked_prepay"
+  | "paid_processing"
+  | "ready_delivered"
+  | "won";
+
+export type Tour = {
+  id: string;
+  title: string;
+  country: string;
+  city: string;
+  durationDays: number;
+  basePrice: number;
+  note: string;
+};
 
 export type Lead = {
   id: string;
   name: string;
-  destination: string;
-  budget: string;
   phone: string;
+  tourId: string;
   status: LeadStatus;
   assignee: string;
   createdAt: string;
+  /** Sayohat */
+  country: string;
+  city: string;
+  hotel: string;
+  flightDates: string;
+  adults: number;
+  childrenAges: string;
+  /** Pasport */
+  passportExpiry: string;
+  /** Moliya ($) */
+  netCost: number;
+  grossPrice: number;
+  paidAmount: number;
+  paidAmountUzs: number;
+  /** Deadline */
+  ticketTimeLimit: string;
+  hotelCancelDeadline: string;
+  fullPaymentDeadline: string;
 };
 
 export type Customer = {

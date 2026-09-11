@@ -13,7 +13,7 @@ export default async function LeadsPage() {
       <Header title="Lidlar kanban" role={session.role} />
       <SectionTitle
         title="Lidlar oqimi"
-        subtitle="Kartalarni ustunlar orasida sudrab statusni o‘zgartiring."
+        subtitle="Tur tanlang, kartani sudrang yoki CRUD bilan boshqaring."
       />
       <LeadsKanban />
     </>
