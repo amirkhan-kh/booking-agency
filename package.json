@@ -1,14 +1,15 @@
 {
-  "name": "marquee-crm",
+  "name": "booking-agency",
   "private": true,
   "version": "0.1.0",
-  "description": "Marquee — booking agency CRM",
+  "description": "Travel booking agency CRM",
   "packageManager": "pnpm@10.28.0",
   "scripts": {
-    "dev": "pnpm -r --parallel --filter @marquee/api --filter @marquee/web run dev",
+    "dev": "pnpm --dir frontend dev",
+    "build": "pnpm --dir frontend build",
+    "dev:legacy": "pnpm -r --parallel --filter @marquee/api --filter @marquee/web run dev",
     "dev:api": "pnpm --filter @marquee/api dev",
     "dev:web": "pnpm --filter @marquee/web dev",
-    "build": "pnpm -r run build",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "pnpm --filter @marquee/api prisma:migrate",
@@ -17,6 +18,6 @@
     "setup": "pnpm db:up && pnpm --filter @marquee/api setup"
   },
   "engines": {
-    "node": ">=20"
+    "node": "20.x"
   }
 }
