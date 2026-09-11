@@ -65,11 +65,21 @@ export type Customer = {
 
 export type Booking = {
   id: string;
+  leadId?: string;
   customer: string;
   route: string;
   date: string;
-  amount: string;
+  amountUsd: number;
   status: "new" | "confirmed" | "paid" | "completed" | "cancelled";
+};
+
+export type ManagerSpend = {
+  id: string;
+  manager: string;
+  item: string;
+  amountUsd: number;
+  date: string;
+  note: string;
 };
 
 export type DashboardStats = {
@@ -77,7 +87,9 @@ export type DashboardStats = {
   activeBookings: number;
   tasksDue: number;
   conversion: string;
-  revenue?: string;
-  expenses?: string;
-  profit?: string;
+  revenueUsd?: number;
+  expensesUsd?: number;
+  profitUsd?: number;
+  managerSpendUsd?: number;
+  operatorCostUsd?: number;
 };

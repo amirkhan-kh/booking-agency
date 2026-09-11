@@ -71,9 +71,6 @@ export function Sidebar({ collapsed, onToggle, role, userName }: Props) {
         </button>
         <div className="sidebar-label">
           <p className="font-display text-lg font-semibold leading-none tracking-tight text-white">
-            Voyage
-          </p>
-          <p className="mt-1 text-[11px] text-[var(--text-muted-on-blue)]">
             Booking CRM
           </p>
         </div>

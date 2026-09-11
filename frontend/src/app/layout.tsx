@@ -13,7 +13,7 @@ const display = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "Voyage — Booking CRM",
+  title: "Booking CRM",
   description: "Travel booking agency CRM",
 };
 

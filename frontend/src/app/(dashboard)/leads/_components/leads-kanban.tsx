@@ -474,41 +474,46 @@ export function LeadsKanban() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium">{leadItem.name}</p>
-                      <button
-                        type="button"
-                        className="text-[11px] text-[var(--accent)] hover:underline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEdit(leadItem);
-                        }}
-                      >
-                        Tahrir
-                      </button>
                     </div>
                     <p className="mt-1 text-xs text-[var(--text-muted)]">
                       {tour?.title ?? "Tur yo‘q"} ·{" "}
                       {leadItem.city || leadItem.country || "—"}
                     </p>
-                    <div className="mt-3 flex items-center justify-between gap-2">
+                    <div className="mt-2">
                       <span className="rounded-lg bg-[rgba(35,111,241,0.08)] px-2 py-0.5 text-xs text-[var(--accent-deep)]">
-                        ${leadItem.grossPrice || 0}
+                        ${leadItem.grossPrice || 0} · to‘lov $
+                        {leadItem.paidAmount || 0}
                       </span>
-                      <button
-                        type="button"
-                        className="text-[11px] text-[var(--danger)] hover:underline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          persist(leads.filter((x) => x.id !== leadItem.id));
-                        }}
-                      >
-                        O‘chirish
-                      </button>
                     </div>
                     {leadItem.ticketTimeLimit ? (
                       <p className="mt-2 text-[10px] text-[var(--text-muted)]">
                         Time-limit: {leadItem.ticketTimeLimit}
                       </p>
                     ) : null}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEdit(leadItem);
+                        }}
+                      >
+                        Tahrirlash
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          persist(leads.filter((x) => x.id !== leadItem.id));
+                        }}
+                      >
+                        O‘chirish
+                      </Button>
+                    </div>
                   </Card>
                 );
               })}

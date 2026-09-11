@@ -5,6 +5,7 @@ import { SectionTitle } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { getSession } from "@/lib/auth";
 import { bookingStatusLabel } from "@/lib/booking-status";
+import { formatUsd } from "@/lib/finance";
 import { MOCK_BOOKINGS } from "@/lib/mock-data";
 
 function statusTone(status: string) {
@@ -27,7 +28,11 @@ export default async function BookingsPage() {
       </span>
     ),
     date: b.date,
-    amount: <span className="font-medium text-[var(--accent)]">{b.amount}</span>,
+    amount: (
+      <span className="font-medium text-[var(--accent)]">
+        {formatUsd(b.amountUsd)}
+      </span>
+    ),
     status: (
       <Badge tone={statusTone(b.status)}>{bookingStatusLabel(b.status)}</Badge>
     ),

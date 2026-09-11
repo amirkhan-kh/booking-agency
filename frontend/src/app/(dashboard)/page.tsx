@@ -4,8 +4,10 @@ import { Card, SectionTitle, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSession } from "@/lib/auth";
 import { bookingStatusLabel } from "@/lib/booking-status";
+import { formatUsd } from "@/lib/finance";
 import { leadStatusLabel } from "@/lib/lead-status";
 import { getStats, MOCK_BOOKINGS, MOCK_LEADS } from "@/lib/mock-data";
+import { DashboardFinance } from "./_components/dashboard-finance";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -20,7 +22,7 @@ export default async function DashboardPage() {
         title={`Salom, ${session.name.split(" ")[0]}`}
         subtitle={
           isAdmin
-            ? "To‘liq agentlik ko‘rinishi — ish oqimi va moliyaviy holat."
+            ? "Ish oqimi va moliyaviy holat — raqamlar lidlardan hisoblanadi."
             : "Ish stoli — lidlar, turlar va bronlar."
         }
       />
@@ -56,31 +58,7 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {isAdmin ? (
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <StatCard
-            className="animate-fade-up stagger-2"
-            label="Tushum"
-            value={stats.revenue ?? "—"}
-            hint="Admin ko‘rinishi"
-            accent="teal"
-          />
-          <StatCard
-            className="animate-fade-up stagger-3"
-            label="Harajatlar"
-            value={stats.expenses ?? "—"}
-            hint="Faqat admin"
-            accent="warm"
-          />
-          <StatCard
-            className="animate-fade-up stagger-4"
-            label="Foyda"
-            value={stats.profit ?? "—"}
-            hint="Sof balans"
-            accent="blue"
-          />
-        </div>
-      ) : null}
+      {isAdmin ? <DashboardFinance /> : null}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card className="animate-fade-up stagger-3 p-5">
@@ -94,7 +72,8 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-sm font-medium">{lead.name}</p>
                   <p className="text-xs text-[var(--text-muted)]">
-                    {lead.city || lead.country} · ${lead.grossPrice}
+                    {lead.city || lead.country} · {formatUsd(lead.grossPrice)} ·
+                    to‘langan {formatUsd(lead.paidAmount)}
                   </p>
                 </div>
                 <Badge tone="accent">{leadStatusLabel(lead.status)}</Badge>
@@ -114,7 +93,7 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-sm font-medium">{b.customer}</p>
                   <p className="text-xs text-[var(--text-muted)]">
-                    {b.route} · {b.date}
+                    {b.route} · {b.date} · {formatUsd(b.amountUsd)}
                   </p>
                 </div>
                 <Badge

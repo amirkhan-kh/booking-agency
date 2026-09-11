@@ -14,20 +14,13 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
       <div className="app-atmosphere" />
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-[12%] top-[18%] h-40 w-40 rounded-full bg-[var(--accent)]/25 blur-3xl" />
-        <div className="absolute bottom-[15%] right-[10%] h-52 w-52 rounded-full bg-[var(--warm)]/20 blur-3xl" />
-      </div>
 
       <Card
         strong
         className="animate-fade-up relative w-full max-w-md overflow-hidden p-8"
       >
-        <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-[var(--accent)]/40 to-transparent blur-2xl" />
-        <p className="font-display text-sm tracking-[0.2em] text-[var(--accent-soft)] uppercase">
-          Voyage
-        </p>
-        <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight">
+        <div className="absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(90deg,var(--accent),var(--accent-deep))]" />
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-[var(--accent-deep)]">
           Kirish
         </h1>
         <p className="mt-2 text-sm text-[var(--text-muted)]">
@@ -52,7 +45,7 @@ export default function LoginPage() {
             autoComplete="current-password"
           />
           {state.error ? (
-            <p className="rounded-xl border border-[rgba(255,107,122,0.35)] bg-[rgba(255,107,122,0.12)] px-3 py-2 text-sm text-[#ffb0b8]">
+            <p className="rounded-xl border border-[rgba(225,29,72,0.25)] bg-[rgba(225,29,72,0.06)] px-3 py-2 text-sm text-[var(--danger)]">
               {state.error}
             </p>
           ) : null}
@@ -61,13 +54,15 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="mt-6 space-y-2 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs text-[var(--text-muted)]">
+        <div className="mt-6 space-y-2 rounded-xl border border-[var(--glass-border)] bg-[var(--bg)] p-3 text-xs text-[var(--text-muted)]">
           <p>
-            <span className="text-[var(--accent-soft)]">Admin:</span>{" "}
+            <span className="font-medium text-[var(--accent)]">Admin:</span>{" "}
             admin@agency.uz / admin123
           </p>
           <p>
-            <span className="text-[var(--warm-soft)]">Employee:</span>{" "}
+            <span className="font-medium text-[var(--accent-deep)]">
+              Employee:
+            </span>{" "}
             employee@agency.uz / emp123
           </p>
         </div>

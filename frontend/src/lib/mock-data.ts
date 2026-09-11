@@ -3,9 +3,11 @@ import type {
   Customer,
   DashboardStats,
   Lead,
+  ManagerSpend,
   Tour,
   User,
 } from "./types";
+import { computeFinance } from "./finance";
 
 export const DEMO_USERS: Record<string, User & { password: string }> = {
   "admin@agency.uz": {
@@ -281,51 +283,88 @@ export const MOCK_CUSTOMERS: Customer[] = [
 export const MOCK_BOOKINGS: Booking[] = [
   {
     id: "b1",
+    leadId: "l6",
     customer: "Dilshoda Nazarova",
     route: "TAS → CDG",
     date: "2026-10-02",
-    amount: "$2,800",
+    amountUsd: 2800,
     status: "paid",
   },
   {
     id: "b2",
+    leadId: "l3",
     customer: "Bekzod Aliyev",
     route: "TAS → AYT",
     date: "2026-09-20",
-    amount: "$980",
+    amountUsd: 980,
     status: "confirmed",
   },
   {
     id: "b3",
+    leadId: "l4",
     customer: "Madina Rakhimova",
     route: "TAS → KUL",
     date: "2026-11-12",
-    amount: "$1,650",
+    amountUsd: 1650,
     status: "new",
   },
   {
     id: "b4",
+    leadId: "l5",
     customer: "Otabek Tursunov",
     route: "TAS → ICN",
     date: "2026-09-28",
-    amount: "$3,100",
+    amountUsd: 3100,
     status: "completed",
   },
 ];
 
+export const MOCK_MANAGER_SPENDS: ManagerSpend[] = [
+  {
+    id: "ms1",
+    manager: "Sara Employee",
+    item: "Ofis uchun naqd",
+    amountUsd: 120,
+    date: "2026-09-03",
+    note: "Kassa",
+  },
+  {
+    id: "ms2",
+    manager: "Amir Admin",
+    item: "Mijoz kutib olish",
+    amountUsd: 85,
+    date: "2026-09-07",
+    note: "Transport",
+  },
+  {
+    id: "ms3",
+    manager: "Sara Employee",
+    item: "SIM / internet",
+    amountUsd: 40,
+    date: "2026-09-09",
+    note: "",
+  },
+];
+
 export function getStats(role: User["role"]): DashboardStats {
+  const fin = computeFinance(MOCK_LEADS, MOCK_MANAGER_SPENDS);
+  const activeBookings = MOCK_BOOKINGS.filter(
+    (b) => b.status !== "cancelled" && b.status !== "completed",
+  ).length;
   const base: DashboardStats = {
     leads: MOCK_LEADS.filter((l) => l.status === "new_lead").length,
-    activeBookings: 11,
+    activeBookings,
     tasksDue: MOCK_TOURS.length,
     conversion: "38%",
   };
   if (role === "admin") {
     return {
       ...base,
-      revenue: "$48,200",
-      expenses: "$12,640",
-      profit: "$35,560",
+      revenueUsd: fin.revenueUsd,
+      expensesUsd: fin.expensesUsd,
+      profitUsd: fin.profitUsd,
+      managerSpendUsd: fin.managerSpendUsd,
+      operatorCostUsd: fin.operatorCostUsd,
     };
   }
   return base;
