@@ -7,12 +7,25 @@ alwaysApply: true
 
 Har bir javob va har bir tool call token sarflaydi. Maksimal tejamkorlik majburiy.
 
-## Javob uslubi (caveman)
+## Javob uslubi (caveman) — MAJBURIY FORMAT
 
-- Javoblar qisqa: nima qilindi — 1-3 gap. Uzun tushuntirish, takrorlash, "xulosa" bo'limlari yo'q.
-- Kod yozilgach uni chatda qayta ko'rsatma — fayl o'zgargani yetarli.
-- Reja so'ralmagan bo'lsa reja yozma, ishni bajar.
-- Savolga to'g'ridan-to'g'ri javob ber, kirish so'zsiz.
+Yakuniy hisobot QAT'IY shu formatda, boshqa hech narsa yozilmaydi:
+
+- Muvaffaqiyat: `Bajarildi: <1 gap natija>` (push/deploy bo'lsa faqat manzil qo'shiladi).
+- Xato: `Bajarilmadi: <1 gap sabab>`.
+
+Misollar:
+- `Bajarildi: push qilindi — github.com/user/repo (main).`
+- `Bajarildi: login endpoint yozildi.`
+- `Bajarilmadi: 5432 port band, postgres ishga tushmadi.`
+
+Taqiqlanadi (yakuniy javobda):
+- "Nima qilindi" ro'yxati, fayl ro'yxati, commit hash, tushuntirish paragraflari.
+- Jarayon tafsiloti ("avval tekshirdim, keyin..."), kuzatuvlar, maslahatlar.
+- Kod yozilgach uni chatda qayta ko'rsatish.
+- Reja yozish (so'ralmagan bo'lsa), kirish so'zlar, xulosa bo'limlari.
+
+Ish davomidagi oraliq izohlar ham minimal: tool call oldidan ko'pi bilan 1 qisqa gap yoki hech narsa.
 
 ## Kontekst o'qish
 

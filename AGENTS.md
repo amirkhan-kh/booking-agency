@@ -28,7 +28,7 @@ Backend taskda FRONTEND.md o'qilmaydi va aksincha — token tejash.
 2. Taskni `[~]` deb belgila (band qilish). Faqat shu taskga tegishli hujjat + fayllarni o'qi.
 3. Taskni bajar. Scope tashqarisiga chiqma, faqat o'z modulingga yoz.
 4. `docs/TASKS.md` da `[x]` belgila va commit qil: `git add <fayllaring> && git commit -m "task X.Y: tavsif"`.
-5. 1-3 gap hisobot ber. To'xta.
+5. Hisobot faqat: `Bajarildi: <1 gap>` yoki `Bajarilmadi: <sabab>`. To'xta.
 
 Parallel sessiyalar qoidasi: `.cursor/rules/parallel-control.mdc`.
 
