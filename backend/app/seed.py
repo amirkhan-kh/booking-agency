@@ -12,7 +12,7 @@ from app.modules.users.models import User, UserRole
 async def seed() -> None:
     async with SessionLocal() as db:
         for email, name, password, role in (
-            ("admin@agency.uz", "Amir Admin", "admin123", UserRole.admin),
+            ("admin@agency.uz", "Soyibjon", "admin123", UserRole.admin),
             ("employee@agency.uz", "Sara Employee", "emp123", UserRole.employee),
         ):
             existing = (

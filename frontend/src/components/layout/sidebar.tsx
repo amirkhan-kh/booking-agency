@@ -24,6 +24,7 @@ const NAV: NavItem[] = [
   { href: "/bookings", label: "Bronlar", icon: "✈", roles: ["admin", "employee"] },
   { href: "/tours", label: "Turlar", icon: "▣", roles: ["admin", "employee"] },
   { href: "/finance", label: "Moliya", icon: "$", roles: ["admin"] },
+  { href: "/settings", label: "Boshqaruv", icon: "⚙", roles: ["admin"] },
 ];
 
 type Props = {

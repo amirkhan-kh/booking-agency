@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import hash_password
 from app.modules.users.models import User
 from app.modules.users.repository import UserRepository
-from app.modules.users.schemas import UserCreate, UserOut
+from app.modules.users.schemas import UserCreate, UserOut, UserUpdate
 
 
 def to_user_out(user: User) -> UserOut:
@@ -43,3 +43,27 @@ class UserService:
 
     async def list(self) -> list[UserOut]:
         return [to_user_out(u) for u in await self.repo.list_users()]
+
+    async def update(self, user_id: uuid.UUID, data: UserUpdate) -> UserOut:
+        user = await self.repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Foydalanuvchi topilmadi")
+        if data.email is not None and data.email.lower() != user.email:
+            if await self.repo.get_by_email(data.email):
+                raise HTTPException(status.HTTP_409_CONFLICT, detail="Email band")
+            user.email = data.email.lower()
+        if data.name is not None:
+            user.name = data.name
+        if data.password is not None:
+            user.password_hash = hash_password(data.password)
+        if data.role is not None:
+            user.role = data.role
+        return to_user_out(await self.repo.save(user))
+
+    async def delete(self, user_id: uuid.UUID, actor_id: uuid.UUID) -> None:
+        if user_id == actor_id:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="O'zingizni o'chira olmaysiz")
+        user = await self.repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Foydalanuvchi topilmadi")
+        await self.repo.delete(user)

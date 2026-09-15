@@ -48,5 +48,6 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 
 - [x] 6.1 Loading skeleton + empty/error ("Ma'lumot topilmadi") barcha CRM sahifalarda; local backend run
 - [x] 6.2 Forma validatsiya (lid/mijoz/tur/xarajat/bron), telefon davlat-kod select, sana inputlar, UZS/$ valyuta almashtirish; backend validatsiya + migratsiya
+- [x] 6.3 Admin nomi → Soyibjon; faqat admin uchun "Boshqaruv" sahifasi (xodimlar CRUD: ism/email/parol/rol, o'chirish); employee ko'rmaydi
 
 
