@@ -18,12 +18,17 @@ class LeadStatus(str, enum.Enum):
     won = "won"
 
 
+class Currency(str, enum.Enum):
+    USD = "USD"
+    UZS = "UZS"
+
+
 class Lead(Base):
     __tablename__ = "leads"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    phone: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    phone: Mapped[str] = mapped_column(String(32), nullable=False, default="")
     tour_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tours.id", ondelete="SET NULL"), nullable=True
     )
@@ -34,16 +39,22 @@ class Lead(Base):
     country: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     city: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     hotel: Mapped[str] = mapped_column(String(200), nullable=False, default="")
-    flight_dates: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    flight_start: Mapped[str] = mapped_column(String(10), nullable=False, default="")
+    flight_end: Mapped[str] = mapped_column(String(10), nullable=False, default="")
     adults: Mapped[int] = mapped_column(Integer, nullable=False, default=2)
     children_ages: Mapped[str] = mapped_column(String(120), nullable=False, default="")
-    passport_expiry: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    passport_expiry: Mapped[str] = mapped_column(String(10), nullable=False, default="")
+    # Moliya — barcha summalar USD da saqlanadi; currency/exchange_rate ko'rsatish uchun
+    currency: Mapped[Currency] = mapped_column(
+        Enum(Currency, name="currency"), nullable=False, default=Currency.USD
+    )
+    exchange_rate: Mapped[float] = mapped_column(Float, nullable=False, default=12800)
     net_cost: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     gross_price: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     paid_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     paid_amount_uzs: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    ticket_time_limit: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    hotel_cancel_deadline: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    full_payment_deadline: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    ticket_time_limit: Mapped[str] = mapped_column(String(16), nullable=False, default="")
+    hotel_cancel_deadline: Mapped[str] = mapped_column(String(10), nullable=False, default="")
+    full_payment_deadline: Mapped[str] = mapped_column(String(10), nullable=False, default="")
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

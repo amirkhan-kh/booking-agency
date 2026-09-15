@@ -20,10 +20,13 @@ def to_out(lead: Lead) -> LeadOut:
         country=lead.country,
         city=lead.city,
         hotel=lead.hotel,
-        flight_dates=lead.flight_dates,
+        flight_start=lead.flight_start,
+        flight_end=lead.flight_end,
         adults=lead.adults,
         children_ages=lead.children_ages,
         passport_expiry=lead.passport_expiry,
+        currency=lead.currency,
+        exchange_rate=lead.exchange_rate,
         net_cost=lead.net_cost,
         gross_price=lead.gross_price,
         paid_amount=lead.paid_amount,
@@ -31,6 +34,7 @@ def to_out(lead: Lead) -> LeadOut:
         ticket_time_limit=lead.ticket_time_limit,
         hotel_cancel_deadline=lead.hotel_cancel_deadline,
         full_payment_deadline=lead.full_payment_deadline,
+        note=lead.note,
     )
 
 
@@ -69,8 +73,8 @@ class LeadService:
         payload = data.model_dump(exclude_unset=True)
         if "tour_id" in payload:
             payload["tour_id"] = _parse_tour_id(payload["tour_id"])
-        for k, v in payload.items():
-            setattr(lead, k, v)
+        for k, val in payload.items():
+            setattr(lead, k, val)
         return to_out(await self.repo.save(lead))
 
     async def delete(self, lead_id: uuid.UUID) -> None:

@@ -25,6 +25,8 @@ export type Tour = {
   note: string;
 };
 
+export type Currency = "USD" | "UZS";
+
 export type Lead = {
   id: string;
   name: string;
@@ -37,12 +39,15 @@ export type Lead = {
   country: string;
   city: string;
   hotel: string;
-  flightDates: string;
+  flightStart: string;
+  flightEnd: string;
   adults: number;
   childrenAges: string;
-  /** Pasport */
+  /** Pasport (YYYY-MM-DD) */
   passportExpiry: string;
-  /** Moliya ($) */
+  /** Moliya — summalar USD da saqlanadi, currency/exchangeRate ko‘rsatish uchun */
+  currency: Currency;
+  exchangeRate: number;
   netCost: number;
   grossPrice: number;
   paidAmount: number;
@@ -51,6 +56,7 @@ export type Lead = {
   ticketTimeLimit: string;
   hotelCancelDeadline: string;
   fullPaymentDeadline: string;
+  note: string;
 };
 
 export type Customer = {
@@ -65,7 +71,7 @@ export type Customer = {
 
 export type Booking = {
   id: string;
-  leadId?: string;
+  leadId?: string | null;
   customer: string;
   route: string;
   date: string;

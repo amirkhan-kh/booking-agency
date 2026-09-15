@@ -7,9 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { Select } from "@/components/ui/select";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { Table } from "@/components/ui/table";
+import { readApiError } from "@/lib/api";
 import type { Customer } from "@/lib/types";
+import {
+  hasErrors,
+  splitPhone,
+  validateName,
+  validateNumber,
+  validatePhone,
+} from "@/lib/validation";
 import {
   createCustomer,
   deleteCustomer,
@@ -23,22 +33,50 @@ const STATUS_UZ: Record<Customer["status"], string> = {
   idle: "Nofaol",
 };
 
-const emptyForm = {
+type FormState = {
+  name: string;
+  phone: string;
+  email: string;
+  trips: string;
+  lastTrip: string;
+  status: Customer["status"];
+};
+
+type Errors = Partial<Record<keyof FormState | "form", string | null>>;
+
+const emptyForm: FormState = {
   name: "",
   phone: "",
+  email: "",
   trips: "0",
   lastTrip: "",
-  status: "active" as Customer["status"],
+  status: "active",
 };
+
+function validate(f: FormState): Errors {
+  const p = splitPhone(f.phone);
+  return {
+    name: validateName(f.name, { label: "Ism" }),
+    phone: validatePhone(p.country, p.local, f.phone.replace(/\D/g, "").slice(0, 3)),
+    email:
+      f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())
+        ? "Email noto‘g‘ri"
+        : null,
+    trips: validateNumber(f.trips, { label: "Safarlar", min: 0, max: 1000 }),
+  };
+}
 
 type Status = "loading" | "ready" | "empty" | "error";
 
 export function CustomersCrud() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [status, setStatus] = useState<Status>("loading");
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [errors, setErrors] = useState<Errors>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof FormState, boolean>>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   async function refresh() {
     try {
@@ -54,6 +92,81 @@ export function CustomersCrud() {
   useEffect(() => {
     void refresh();
   }, []);
+
+  function set<K extends keyof FormState>(k: K, v: FormState[K]) {
+    setForm((prev) => {
+      const next = { ...prev, [k]: v };
+      if (touched[k]) setErrors(validate(next));
+      return next;
+    });
+  }
+  function touch(k: keyof FormState) {
+    setTouched((t) => ({ ...t, [k]: true }));
+    setErrors(validate(form));
+  }
+  const show = (k: keyof FormState) => (touched[k] ? errors[k] : undefined);
+
+  function openForm(c?: Customer) {
+    setEditingId(c?.id ?? null);
+    setForm(
+      c
+        ? {
+            name: c.name,
+            phone: c.phone,
+            email: c.email,
+            trips: String(c.trips),
+            lastTrip: c.lastTrip === "—" ? "" : c.lastTrip,
+            status: c.status,
+          }
+        : emptyForm,
+    );
+    setErrors({});
+    setTouched({});
+    setOpen(true);
+  }
+
+  function resetForm() {
+    setEditingId(null);
+    setForm(emptyForm);
+    setErrors({});
+    setTouched({});
+    setOpen(false);
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const all = validate(form);
+    setErrors(all);
+    setTouched({ name: true, phone: true, email: true, trips: true, lastTrip: true, status: true });
+    if (hasErrors(all)) return;
+
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone,
+      trips: Number(form.trips) || 0,
+      lastTrip: form.lastTrip.trim(),
+      status: form.status,
+    };
+    setBusy(true);
+    try {
+      if (editingId) await updateCustomer(editingId, payload);
+      else await createCustomer(payload);
+      await refresh();
+      resetForm();
+    } catch (err) {
+      const { message, errors: se } = readApiError(err);
+      setErrors((prev) => ({ ...prev, form: message, ...se }));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(c: Customer) {
+    if (!window.confirm(`“${c.name}” mijozini o‘chirasizmi?`)) return;
+    await deleteCustomer(c.id);
+    await refresh();
+  }
 
   const rows = useMemo(
     () =>
@@ -81,66 +194,23 @@ export function CustomersCrud() {
         ),
         actions: (
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setEditingId(c.id);
-                setForm({
-                  name: c.name,
-                  phone: c.phone,
-                  trips: String(c.trips),
-                  lastTrip: c.lastTrip === "—" ? "" : c.lastTrip,
-                  status: c.status,
-                });
-                setOpen(true);
-              }}
-            >
+            <Button type="button" size="sm" variant="ghost" onClick={() => openForm(c)}>
               Tahrirlash
             </Button>
             <Button
               type="button"
               size="sm"
               variant="danger"
-              onClick={() => {
-                void deleteCustomer(c.id).then(refresh);
-              }}
+              onClick={() => void remove(c)}
             >
               O‘chirish
             </Button>
           </div>
         ),
       })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [customers],
   );
-
-  function resetForm() {
-    setEditingId(null);
-    setForm(emptyForm);
-    setOpen(false);
-  }
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const payload = {
-      name: form.name.trim(),
-      email: "",
-      phone: form.phone.trim(),
-      trips: Number(form.trips) || 0,
-      lastTrip: form.lastTrip.trim() || "—",
-      status: form.status,
-    };
-    if (!payload.name || !payload.phone) return;
-    try {
-      if (editingId) await updateCustomer(editingId, payload);
-      else await createCustomer(payload);
-      await refresh();
-      resetForm();
-    } catch {
-      setStatus("error");
-    }
-  }
 
   if (status === "loading") {
     return (
@@ -155,16 +225,9 @@ export function CustomersCrud() {
     <>
       <SectionTitle
         title="Mijozlar bazasi"
-        subtitle="Mijozlar CRUD — backend API."
+        subtitle="Doimiy mijozlar — telefon bo‘yicha yagona."
         action={
-          <Button
-            type="button"
-            onClick={() => {
-              setEditingId(null);
-              setForm(emptyForm);
-              setOpen(true);
-            }}
-          >
+          <Button type="button" onClick={() => openForm()}>
             + Yangi mijoz
           </Button>
         }
@@ -177,67 +240,76 @@ export function CustomersCrud() {
           </h3>
           <form
             onSubmit={(e) => void onSubmit(e)}
+            noValidate
             className="mt-4 grid gap-3 sm:grid-cols-2"
           >
             <Input
-              label="Ism"
+              label="Ism *"
               name="name"
               value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              onChange={(e) => set("name", e.target.value)}
+              onBlur={() => touch("name")}
+              error={show("name")}
+              placeholder="Aliyev Vali"
+            />
+            <PhoneInput
+              label="Telefon *"
+              value={form.phone}
+              onChange={(v) => {
+                set("phone", v);
+                setTouched((t) => ({ ...t, phone: true }));
+              }}
+              error={show("phone")}
               required
             />
             <Input
-              label="Telefon"
-              name="phone"
-              value={form.phone}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, phone: e.target.value }))
-              }
-              required
+              label="Email"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              onBlur={() => touch("email")}
+              error={show("email")}
+              placeholder="mijoz@mail.uz"
             />
             <Input
               label="Safarlar soni"
               name="trips"
               type="number"
+              inputMode="numeric"
               min={0}
+              max={1000}
               value={form.trips}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, trips: e.target.value }))
-              }
+              onChange={(e) => set("trips", e.target.value)}
+              onBlur={() => touch("trips")}
+              error={show("trips")}
             />
             <Input
-              label="Oxirgi safar"
+              label="Oxirgi safar (shahar)"
               name="lastTrip"
               value={form.lastTrip}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, lastTrip: e.target.value }))
-              }
-              placeholder="Paris"
+              onChange={(e) => set("lastTrip", e.target.value)}
+              placeholder="Istanbul"
             />
-            <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
-              <span className="text-[var(--text-muted)] tracking-wide">
-                Status
-              </span>
-              <select
-                className="rounded-xl border border-[var(--glass-border)] bg-[var(--bg)] px-3.5 py-2.5 text-[var(--text)] outline-none focus:border-[var(--accent)]/45"
-                value={form.status}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    status: e.target.value as Customer["status"],
-                  }))
-                }
-              >
-                <option value="active">Faol</option>
-                <option value="vip">VIP</option>
-                <option value="idle">Nofaol</option>
-              </select>
-            </label>
+            <Select
+              label="Status"
+              value={form.status}
+              onChange={(e) => set("status", e.target.value as Customer["status"])}
+            >
+              <option value="active">Faol</option>
+              <option value="vip">VIP</option>
+              <option value="idle">Nofaol</option>
+            </Select>
+            {errors.form ? (
+              <p className="rounded-xl border border-[rgba(225,29,72,0.25)] bg-[rgba(225,29,72,0.06)] px-3 py-2 text-sm text-[var(--danger)] sm:col-span-2">
+                {errors.form}
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2 sm:col-span-2">
-              <Button type="submit">
-                {editingId ? "Saqlash" : "Qo‘shish"}
+              <Button type="submit" disabled={busy}>
+                {busy ? "Saqlanmoqda…" : editingId ? "Saqlash" : "Qo‘shish"}
               </Button>
-              <Button type="button" variant="ghost" onClick={resetForm}>
+              <Button type="button" variant="ghost" onClick={resetForm} disabled={busy}>
                 Bekor
               </Button>
             </div>

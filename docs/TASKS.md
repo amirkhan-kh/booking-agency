@@ -47,5 +47,6 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 ## Phase 6 — UX
 
 - [x] 6.1 Loading skeleton + empty/error ("Ma'lumot topilmadi") barcha CRM sahifalarda; local backend run
+- [x] 6.2 Forma validatsiya (lid/mijoz/tur/xarajat/bron), telefon davlat-kod select, sana inputlar, UZS/$ valyuta almashtirish; backend validatsiya + migratsiya
 
 

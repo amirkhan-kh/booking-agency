@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
 from app.modules.auth.router import router as auth_router
@@ -29,6 +31,42 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def _uz_message(err: dict) -> str:
+    """Pydantic standart xabarlarini o'zbekchaga o'girish."""
+    msg = str(err.get("msg", "Xato"))
+    if msg.startswith("Value error, "):
+        return msg[len("Value error, "):]
+    ctx = err.get("ctx") or {}
+    t = err.get("type", "")
+    table = {
+        "missing": "Maydon to'ldirilishi shart",
+        "string_too_short": f"Kamida {ctx.get('min_length')} belgi",
+        "string_too_long": f"Ko'pi bilan {ctx.get('max_length')} belgi",
+        "greater_than": f"{ctx.get('gt')} dan katta bo'lishi kerak",
+        "greater_than_equal": f"{ctx.get('ge')} dan kam bo'lmasin",
+        "less_than_equal": f"{ctx.get('le')} dan oshmasin",
+        "int_parsing": "Butun son kiriting",
+        "float_parsing": "Raqam kiriting",
+        "enum": "Noto'g'ri qiymat",
+        "string_type": "Matn bo'lishi kerak",
+    }
+    if t.startswith("value_error") and "email" in msg:
+        return "Email noto'g'ri"
+    return table.get(t, msg)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    """422 → {"detail": "<o'qiladigan xabar>", "errors": {field: msg}} — frontend to'g'ridan ko'rsatadi."""
+    errors: dict[str, str] = {}
+    for err in exc.errors():
+        loc = [str(p) for p in err.get("loc", []) if p not in ("body", "query", "path")]
+        field = loc[-1] if loc else "__root__"
+        errors.setdefault(field, _uz_message(err))
+    first = next(iter(errors.values()), "Ma'lumot noto'g'ri")
+    return JSONResponse(status_code=422, content={"detail": first, "errors": errors})
+
 
 api = "/api/v1"
 app.include_router(auth_router, prefix=api)

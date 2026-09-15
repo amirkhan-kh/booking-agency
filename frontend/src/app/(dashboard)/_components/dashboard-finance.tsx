@@ -7,8 +7,16 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { StatCardsSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 import { Table } from "@/components/ui/table";
+import { readApiError } from "@/lib/api";
 import { computeFinance, formatUsd } from "@/lib/finance";
 import type { Lead, ManagerSpend } from "@/lib/types";
+import {
+  hasErrors,
+  validateDate,
+  validateName,
+  validateNumber,
+  validateRequired,
+} from "@/lib/validation";
 import { loadLeads } from "../leads/_components/leads-store";
 import {
   createSpend,
@@ -17,13 +25,31 @@ import {
   updateSpend,
 } from "./manager-spends-store";
 
-const empty = {
+type FormState = {
+  manager: string;
+  item: string;
+  amountUsd: string;
+  date: string;
+  note: string;
+};
+type Errors = Partial<Record<keyof FormState | "form", string | null>>;
+
+const empty: FormState = {
   manager: "",
   item: "",
   amountUsd: "",
   date: new Date().toISOString().slice(0, 10),
   note: "",
 };
+
+function validate(f: FormState): Errors {
+  return {
+    manager: validateName(f.manager, { label: "Menejer" }),
+    item: validateRequired(f.item, "Xarajat nomi"),
+    amountUsd: validateNumber(f.amountUsd, { label: "Summa", positive: true }),
+    date: validateDate(f.date, { label: "Sana", required: true }),
+  };
+}
 
 export function DashboardFinance() {
   const [spends, setSpends] = useState<ManagerSpend[]>([]);
@@ -33,7 +59,23 @@ export function DashboardFinance() {
   );
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(empty);
+  const [form, setForm] = useState<FormState>(empty);
+  const [errors, setErrors] = useState<Errors>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof FormState, boolean>>>({});
+  const [busy, setBusy] = useState(false);
+
+  function set<K extends keyof FormState>(k: K, v: FormState[K]) {
+    setForm((prev) => {
+      const next = { ...prev, [k]: v };
+      if (touched[k]) setErrors(validate(next));
+      return next;
+    });
+  }
+  function touch(k: keyof FormState) {
+    setTouched((t) => ({ ...t, [k]: true }));
+    setErrors(validate(form));
+  }
+  const show = (k: keyof FormState) => (touched[k] ? errors[k] : undefined);
 
   async function refresh() {
     try {
@@ -81,6 +123,8 @@ export function DashboardFinance() {
                   date: s.date,
                   note: s.note,
                 });
+                setErrors({});
+                setTouched({});
                 setOpen(true);
               }}
             >
@@ -91,6 +135,7 @@ export function DashboardFinance() {
               size="sm"
               variant="danger"
               onClick={() => {
+                if (!window.confirm(`“${s.item}” xarajatini o‘chirasizmi?`)) return;
                 void deleteSpend(s.id).then(refresh);
               }}
             >
@@ -104,6 +149,11 @@ export function DashboardFinance() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const all = validate(form);
+    setErrors(all);
+    setTouched({ manager: true, item: true, amountUsd: true, date: true, note: true });
+    if (hasErrors(all)) return;
+
     const payload = {
       manager: form.manager.trim(),
       item: form.item.trim(),
@@ -111,13 +161,22 @@ export function DashboardFinance() {
       date: form.date,
       note: form.note.trim(),
     };
-    if (!payload.manager || !payload.item || payload.amountUsd <= 0) return;
-    if (editingId) await updateSpend(editingId, payload);
-    else await createSpend(payload);
-    setOpen(false);
-    setEditingId(null);
-    setForm(empty);
-    await refresh();
+    setBusy(true);
+    try {
+      if (editingId) await updateSpend(editingId, payload);
+      else await createSpend(payload);
+      setOpen(false);
+      setEditingId(null);
+      setForm(empty);
+      setErrors({});
+      setTouched({});
+      await refresh();
+    } catch (err) {
+      const { message, errors: se } = readApiError(err);
+      setErrors((prev) => ({ ...prev, form: message, ...se }));
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (status === "loading") {
@@ -184,6 +243,8 @@ export function DashboardFinance() {
             onClick={() => {
               setEditingId(null);
               setForm(empty);
+              setErrors({});
+              setTouched({});
               setOpen(true);
             }}
           >
@@ -196,49 +257,65 @@ export function DashboardFinance() {
         <Card className="p-5">
           <form
             onSubmit={(e) => void onSubmit(e)}
+            noValidate
             className="grid gap-3 sm:grid-cols-2"
           >
             <Input
-              label="Menejer"
+              label="Menejer *"
               value={form.manager}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, manager: e.target.value }))
-              }
-              required
+              onChange={(e) => set("manager", e.target.value)}
+              onBlur={() => touch("manager")}
+              error={show("manager")}
+              placeholder="Sara"
             />
             <Input
-              label="Xarajat"
+              label="Xarajat *"
               value={form.item}
-              onChange={(e) => setForm((f) => ({ ...f, item: e.target.value }))}
-              required
+              onChange={(e) => set("item", e.target.value)}
+              onBlur={() => touch("item")}
+              error={show("item")}
+              placeholder="Taksi, ofis, reklama…"
             />
             <Input
-              label="Summa ($)"
+              label="Summa ($) *"
               type="number"
+              inputMode="decimal"
               min={0}
+              step="0.01"
               value={form.amountUsd}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, amountUsd: e.target.value }))
-              }
-              required
+              onChange={(e) => set("amountUsd", e.target.value)}
+              onBlur={() => touch("amountUsd")}
+              error={show("amountUsd")}
             />
             <Input
-              label="Sana"
+              label="Sana *"
               type="date"
               value={form.date}
-              onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+              onChange={(e) => set("date", e.target.value)}
+              onBlur={() => touch("date")}
+              error={show("date")}
             />
-            <Input
-              label="Izoh"
-              value={form.note}
-              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              className="sm:col-span-2"
-            />
+            <div className="sm:col-span-2">
+              <Input
+                label="Izoh"
+                value={form.note}
+                maxLength={500}
+                onChange={(e) => set("note", e.target.value)}
+              />
+            </div>
+            {errors.form ? (
+              <p className="rounded-xl border border-[rgba(225,29,72,0.25)] bg-[rgba(225,29,72,0.06)] px-3 py-2 text-sm text-[var(--danger)] sm:col-span-2">
+                {errors.form}
+              </p>
+            ) : null}
             <div className="flex gap-2 sm:col-span-2">
-              <Button type="submit">{editingId ? "Saqlash" : "Qo‘shish"}</Button>
+              <Button type="submit" disabled={busy}>
+                {busy ? "Saqlanmoqda…" : editingId ? "Saqlash" : "Qo‘shish"}
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
+                disabled={busy}
                 onClick={() => {
                   setOpen(false);
                   setEditingId(null);
