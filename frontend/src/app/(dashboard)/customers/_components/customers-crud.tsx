@@ -8,7 +8,12 @@ import { Card, SectionTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table } from "@/components/ui/table";
 import type { Customer } from "@/lib/types";
-import { loadCustomers, saveCustomers } from "./customers-store";
+import {
+  createCustomer,
+  deleteCustomer,
+  loadCustomers,
+  updateCustomer,
+} from "./customers-store";
 
 const STATUS_UZ: Record<Customer["status"], string> = {
   active: "Faol",
@@ -31,15 +36,14 @@ export function CustomersCrud() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    setCustomers(loadCustomers());
+  async function refresh() {
+    setCustomers(await loadCustomers());
     setReady(true);
-  }, []);
-
-  function persist(next: Customer[]) {
-    setCustomers(next);
-    saveCustomers(next);
   }
+
+  useEffect(() => {
+    void refresh();
+  }, []);
 
   const rows = useMemo(
     () =>
@@ -89,7 +93,9 @@ export function CustomersCrud() {
               type="button"
               size="sm"
               variant="danger"
-              onClick={() => persist(customers.filter((x) => x.id !== c.id))}
+              onClick={() => {
+                void deleteCustomer(c.id).then(refresh);
+              }}
             >
               O‘chirish
             </Button>
@@ -105,10 +111,9 @@ export function CustomersCrud() {
     setOpen(false);
   }
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload: Customer = {
-      id: editingId ?? `c${Date.now()}`,
+    const payload = {
       name: form.name.trim(),
       email: "",
       phone: form.phone.trim(),
@@ -117,12 +122,9 @@ export function CustomersCrud() {
       status: form.status,
     };
     if (!payload.name || !payload.phone) return;
-
-    persist(
-      editingId
-        ? customers.map((c) => (c.id === editingId ? payload : c))
-        : [payload, ...customers],
-    );
+    if (editingId) await updateCustomer(editingId, payload);
+    else await createCustomer(payload);
+    await refresh();
     resetForm();
   }
 
@@ -134,7 +136,7 @@ export function CustomersCrud() {
     <>
       <SectionTitle
         title="Mijozlar bazasi"
-        subtitle="Qo‘lda CRUD — backend ulanmagan."
+        subtitle="Mijozlar CRUD — backend API."
         action={
           <Button
             type="button"
@@ -155,7 +157,7 @@ export function CustomersCrud() {
             {editingId ? "Mijozni tahrirlash" : "Yangi mijoz"}
           </h3>
           <form
-            onSubmit={onSubmit}
+            onSubmit={(e) => void onSubmit(e)}
             className="mt-4 grid gap-3 sm:grid-cols-2"
           >
             <Input

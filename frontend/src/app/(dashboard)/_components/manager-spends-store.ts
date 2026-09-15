@@ -1,21 +1,29 @@
-import { MOCK_MANAGER_SPENDS } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 import type { ManagerSpend } from "@/lib/types";
 
-const KEY = "voyage-manager-spends-v1";
-
-export function loadManagerSpends(): ManagerSpend[] {
-  if (typeof window === "undefined") return MOCK_MANAGER_SPENDS;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return MOCK_MANAGER_SPENDS;
-    const parsed = JSON.parse(raw) as ManagerSpend[];
-    return Array.isArray(parsed) ? parsed : MOCK_MANAGER_SPENDS;
-  } catch {
-    return MOCK_MANAGER_SPENDS;
-  }
+export async function loadSpends(): Promise<ManagerSpend[]> {
+  return api<ManagerSpend[]>("/api/v1/spends/");
 }
 
-export function saveManagerSpends(list: ManagerSpend[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(list));
+export async function createSpend(
+  body: Omit<ManagerSpend, "id">,
+): Promise<ManagerSpend> {
+  return api<ManagerSpend>("/api/v1/spends/", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function updateSpend(
+  id: string,
+  body: Partial<Omit<ManagerSpend, "id">>,
+): Promise<ManagerSpend> {
+  return api<ManagerSpend>(`/api/v1/spends/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteSpend(id: string): Promise<void> {
+  await api<void>(`/api/v1/spends/${id}`, { method: "DELETE" });
 }

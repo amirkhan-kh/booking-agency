@@ -1,21 +1,18 @@
-import { MOCK_TOURS } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 import type { Tour } from "@/lib/types";
 
-const KEY = "voyage-tours";
-
-export function loadTours(): Tour[] {
-  if (typeof window === "undefined") return MOCK_TOURS;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return MOCK_TOURS;
-    const parsed = JSON.parse(raw) as Tour[];
-    return Array.isArray(parsed) ? parsed : MOCK_TOURS;
-  } catch {
-    return MOCK_TOURS;
-  }
+export async function loadTours(): Promise<Tour[]> {
+  return api<Tour[]>("/api/v1/tours/");
 }
 
-export function saveTours(list: Tour[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(list));
+export async function createTour(body: Omit<Tour, "id">): Promise<Tour> {
+  return api<Tour>("/api/v1/tours/", { method: "POST", body: JSON.stringify(body) });
+}
+
+export async function updateTour(id: string, body: Partial<Omit<Tour, "id">>): Promise<Tour> {
+  return api<Tour>(`/api/v1/tours/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+}
+
+export async function deleteTour(id: string): Promise<void> {
+  await api<void>(`/api/v1/tours/${id}`, { method: "DELETE" });
 }

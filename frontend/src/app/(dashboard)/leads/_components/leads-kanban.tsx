@@ -13,7 +13,22 @@ import {
 import type { Lead, LeadStatus, Tour } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { loadTours } from "../../tours/_components/tours-store";
-import { loadLeads, saveLeads } from "./leads-store";
+import {
+  createLead,
+  deleteLead,
+  loadLeads,
+  type LeadPeriod,
+  updateLead,
+} from "./leads-store";
+
+const PERIODS: { id: LeadPeriod; label: string }[] = [
+  { id: "day", label: "Kun" },
+  { id: "week", label: "Hafta" },
+  { id: "month", label: "Oy" },
+  { id: "3m", label: "3 oy" },
+  { id: "1y", label: "1 yil" },
+  { id: "all", label: "Hammasi" },
+];
 
 const field =
   "rounded-xl border border-[var(--glass-border)] bg-[var(--bg)] px-3.5 py-2.5 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)]/45";
@@ -46,21 +61,23 @@ export function LeadsKanban() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [tours, setTours] = useState<Tour[]>([]);
   const [ready, setReady] = useState(false);
+  const [period, setPeriod] = useState<LeadPeriod>("month");
   const [dragging, setDragging] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(() => emptyLead());
 
-  useEffect(() => {
-    setLeads(loadLeads());
-    setTours(loadTours());
+  async function refresh(p: LeadPeriod = period) {
+    const [l, t] = await Promise.all([loadLeads(p), loadTours()]);
+    setLeads(l);
+    setTours(t);
     setReady(true);
-  }, []);
-
-  function persist(next: Lead[]) {
-    setLeads(next);
-    saveLeads(next);
   }
+
+  useEffect(() => {
+    void refresh(period);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period]);
 
   const tourMap = useMemo(() => {
     const m = new Map<string, Tour>();
@@ -81,10 +98,9 @@ export function LeadsKanban() {
 
   function onDrop(status: LeadStatus) {
     if (!dragging) return;
-    persist(
-      leads.map((l) => (l.id === dragging ? { ...l, status } : l)),
-    );
+    const id = dragging;
     setDragging(null);
+    void updateLead(id, { status }).then(() => refresh());
   }
 
   function openCreate(status: LeadStatus = "new_lead") {
@@ -115,13 +131,7 @@ export function LeadsKanban() {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim() || !form.tourId) return;
-    const payload: Lead = {
-      id: editingId ?? `l${Date.now()}`,
-      createdAt:
-        editingId != null
-          ? (leads.find((l) => l.id === editingId)?.createdAt ??
-            new Date().toISOString().slice(0, 10))
-          : new Date().toISOString().slice(0, 10),
+    const payload = {
       ...form,
       name: form.name.trim(),
       phone: form.phone.trim(),
@@ -131,13 +141,12 @@ export function LeadsKanban() {
       paidAmount: Number(form.paidAmount) || 0,
       paidAmountUzs: Number(form.paidAmountUzs) || 0,
     };
-    persist(
-      editingId
-        ? leads.map((l) => (l.id === editingId ? payload : l))
-        : [payload, ...leads],
-    );
-    setOpen(false);
-    setEditingId(null);
+    void (editingId ? updateLead(editingId, payload) : createLead(payload))
+      .then(() => {
+        setOpen(false);
+        setEditingId(null);
+        return refresh();
+      });
   }
 
   const margin = leadMargin(Number(form.netCost) || 0, Number(form.grossPrice) || 0);
@@ -153,9 +162,19 @@ export function LeadsKanban() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-[var(--text-muted)]">
-          Kartani sudrang yoki CRUD orqali boshqaring. Tur majburiy.
-        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {PERIODS.map((p) => (
+            <Button
+              key={p.id}
+              type="button"
+              size="sm"
+              variant={period === p.id ? "primary" : "ghost"}
+              onClick={() => setPeriod(p.id)}
+            >
+              {p.label}
+            </Button>
+          ))}
+        </div>
         <Button type="button" onClick={() => openCreate("new_lead")}>
           + Yangi lid
         </Button>
@@ -508,7 +527,7 @@ export function LeadsKanban() {
                         variant="danger"
                         onClick={(e) => {
                           e.stopPropagation();
-                          persist(leads.filter((x) => x.id !== leadItem.id));
+                          void deleteLead(leadItem.id).then(() => refresh());
                         }}
                       >
                         O‘chirish

@@ -1,25 +1,33 @@
-import { MOCK_CUSTOMERS } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 import type { Customer } from "@/lib/types";
 
-const KEY = "voyage-customers";
-
-export function loadCustomers(): Customer[] {
-  if (typeof window === "undefined") return MOCK_CUSTOMERS;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return MOCK_CUSTOMERS;
-    const parsed = JSON.parse(raw) as Customer[];
-    return Array.isArray(parsed) ? parsed : MOCK_CUSTOMERS;
-  } catch {
-    return MOCK_CUSTOMERS;
-  }
+export async function loadCustomers(): Promise<Customer[]> {
+  return api<Customer[]>("/api/v1/customers/");
 }
 
-export function saveCustomers(list: Customer[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(list));
+export async function getCustomer(id: string): Promise<Customer> {
+  return api<Customer>(`/api/v1/customers/${id}`);
 }
 
-export function getCustomerById(id: string): Customer | undefined {
-  return loadCustomers().find((c) => c.id === id);
+export async function createCustomer(
+  body: Omit<Customer, "id">,
+): Promise<Customer> {
+  return api<Customer>("/api/v1/customers/", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function updateCustomer(
+  id: string,
+  body: Partial<Omit<Customer, "id">>,
+): Promise<Customer> {
+  return api<Customer>(`/api/v1/customers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteCustomer(id: string): Promise<void> {
+  await api<void>(`/api/v1/customers/${id}`, { method: "DELETE" });
 }

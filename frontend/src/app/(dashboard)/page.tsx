@@ -2,18 +2,36 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Card, SectionTitle, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { api } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { bookingStatusLabel } from "@/lib/booking-status";
 import { formatUsd } from "@/lib/finance";
 import { leadStatusLabel } from "@/lib/lead-status";
-import { getStats, MOCK_BOOKINGS, MOCK_LEADS } from "@/lib/mock-data";
+import type { Booking, DashboardStats, Lead } from "@/lib/types";
 import { DashboardFinance } from "./_components/dashboard-finance";
 
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-  const stats = getStats(session.role);
   const isAdmin = session.role === "admin";
+
+  let stats: DashboardStats = {
+    leads: 0,
+    activeBookings: 0,
+    tasksDue: 0,
+    conversion: "0%",
+  };
+  let leads: Lead[] = [];
+  let bookings: Booking[] = [];
+  try {
+    [stats, leads, bookings] = await Promise.all([
+      api<DashboardStats>("/api/v1/dashboard/stats"),
+      api<Lead[]>("/api/v1/leads/"),
+      api<Booking[]>("/api/v1/bookings/"),
+    ]);
+  } catch {
+    /* empty until auth cookies ready */
+  }
 
   return (
     <>
@@ -32,7 +50,7 @@ export default async function DashboardPage() {
           className="animate-fade-up stagger-1"
           label="Yangi lidlar"
           value={stats.leads}
-          hint="Shu oy"
+          hint="Jami"
           accent="teal"
         />
         <StatCard
@@ -53,7 +71,7 @@ export default async function DashboardPage() {
           className="animate-fade-up stagger-4"
           label="Konversiya"
           value={stats.conversion}
-          hint="Lid → bron"
+          hint="Lid → won"
           accent="teal"
         />
       </div>
@@ -64,7 +82,7 @@ export default async function DashboardPage() {
         <Card className="animate-fade-up stagger-3 p-5">
           <h3 className="font-display text-lg font-semibold">So‘nggi lidlar</h3>
           <ul className="mt-4 space-y-3">
-            {MOCK_LEADS.slice(0, 4).map((lead) => (
+            {leads.slice(0, 4).map((lead) => (
               <li
                 key={lead.id}
                 className="flex items-center justify-between gap-3 rounded-xl border border-[var(--glass-border)] bg-[var(--bg-soft)] px-3 py-2.5"
@@ -79,13 +97,16 @@ export default async function DashboardPage() {
                 <Badge tone="accent">{leadStatusLabel(lead.status)}</Badge>
               </li>
             ))}
+            {leads.length === 0 ? (
+              <li className="text-sm text-[var(--text-muted)]">Lid yo‘q</li>
+            ) : null}
           </ul>
         </Card>
 
         <Card className="animate-fade-up stagger-4 p-5">
           <h3 className="font-display text-lg font-semibold">So‘nggi bronlar</h3>
           <ul className="mt-4 space-y-3">
-            {MOCK_BOOKINGS.slice(0, 4).map((b) => (
+            {bookings.slice(0, 4).map((b) => (
               <li
                 key={b.id}
                 className="flex items-center justify-between gap-3 rounded-xl border border-[var(--glass-border)] bg-[var(--bg-soft)] px-3 py-2.5"
@@ -111,6 +132,9 @@ export default async function DashboardPage() {
                 </Badge>
               </li>
             ))}
+            {bookings.length === 0 ? (
+              <li className="text-sm text-[var(--text-muted)]">Bron yo‘q</li>
+            ) : null}
           </ul>
         </Card>
       </div>

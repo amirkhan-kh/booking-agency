@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
 import type { Customer } from "@/lib/types";
-import { getCustomerById } from "../_components/customers-store";
+import { getCustomer } from "../_components/customers-store";
 
 const STATUS_UZ: Record<Customer["status"], string> = {
   active: "Faol",
@@ -21,7 +21,9 @@ export function CustomerDetail({ id }: { id: string }) {
   );
 
   useEffect(() => {
-    setCustomer(getCustomerById(id) ?? null);
+    void getCustomer(id)
+      .then(setCustomer)
+      .catch(() => setCustomer(null));
   }, [id]);
 
   if (customer === undefined) {

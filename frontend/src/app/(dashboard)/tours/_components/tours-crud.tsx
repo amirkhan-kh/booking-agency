@@ -6,7 +6,7 @@ import { Card, SectionTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table } from "@/components/ui/table";
 import type { Tour } from "@/lib/types";
-import { loadTours, saveTours } from "./tours-store";
+import { createTour, deleteTour, loadTours, updateTour } from "./tours-store";
 
 const emptyForm = {
   title: "",
@@ -23,16 +23,16 @@ export function ToursCrud() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function refresh() {
+    setTours(await loadTours());
+    setReady(true);
+  }
 
   useEffect(() => {
-    setTours(loadTours());
-    setReady(true);
+    void refresh().catch(() => setError("Turlar yuklanmadi"));
   }, []);
-
-  function persist(next: Tour[]) {
-    setTours(next);
-    saveTours(next);
-  }
 
   const rows = useMemo(
     () =>
@@ -74,7 +74,11 @@ export function ToursCrud() {
               type="button"
               size="sm"
               variant="danger"
-              onClick={() => persist(tours.filter((x) => x.id !== t.id))}
+              onClick={() => {
+                void deleteTour(t.id)
+                  .then(refresh)
+                  .catch(() => setError("O‘chirish xato"));
+              }}
             >
               O‘chirish
             </Button>
@@ -90,10 +94,9 @@ export function ToursCrud() {
     setOpen(false);
   }
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload: Tour = {
-      id: editingId ?? `t${Date.now()}`,
+    const payload = {
       title: form.title.trim(),
       country: form.country.trim(),
       city: form.city.trim(),
@@ -102,12 +105,14 @@ export function ToursCrud() {
       note: form.note.trim(),
     };
     if (!payload.title || !payload.country || !payload.city) return;
-    persist(
-      editingId
-        ? tours.map((t) => (t.id === editingId ? payload : t))
-        : [payload, ...tours],
-    );
-    resetForm();
+    try {
+      if (editingId) await updateTour(editingId, payload);
+      else await createTour(payload);
+      await refresh();
+      resetForm();
+    } catch {
+      setError("Saqlash xato");
+    }
   }
 
   if (!ready) {
@@ -132,6 +137,9 @@ export function ToursCrud() {
           </Button>
         }
       />
+      {error ? (
+        <p className="mb-3 text-sm text-[var(--danger)]">{error}</p>
+      ) : null}
 
       {open ? (
         <Card className="mb-5 p-5">
@@ -139,7 +147,7 @@ export function ToursCrud() {
             {editingId ? "Turni tahrirlash" : "Yangi tur"}
           </h3>
           <form
-            onSubmit={onSubmit}
+            onSubmit={(e) => void onSubmit(e)}
             className="mt-4 grid gap-3 sm:grid-cols-2"
           >
             <Input

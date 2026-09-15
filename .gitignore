@@ -9,10 +9,7 @@ coverage
 .env
 .env.local
 .env.*.local
-apps/api/.env
-apps/web/.env
 .DS_Store
-prisma/*.db
 *.tsbuildinfo
 .idea
 .vscode
@@ -21,3 +18,4 @@ __pycache__
 *.pyc
 .venv
 .pytest_cache
+backend/.venv

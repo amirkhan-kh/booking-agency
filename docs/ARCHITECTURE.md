@@ -37,12 +37,13 @@ booking-agency/
 
 | Modul | Vazifasi |
 |---|---|
-| `auth` | Login, JWT, joriy foydalanuvchi |
-| `users` | Xodimlar (admin, agent rollari) |
+| `auth` | Login, JWT cookie, joriy foydalanuvchi |
+| `users` | Xodimlar (admin, employee) — 2–3 kishi |
+| `tours` | Tur katalogi |
+| `leads` | Lidlar/kanban + period filter (kun/hafta/oy/3m/1y) |
 | `customers` | Mijozlar bazasi |
-| `bookings` | Ticket/xizmat bronlari (status oqimi: `new → confirmed → paid → completed / cancelled`) |
-| `payments` | Bron to'lovlari |
-| `tasks` | Xodim vazifalari (follow-up, eslatmalar) |
-| `dashboard` | Statistika (agregat so'rovlar) |
+| `bookings` | Ticket bronlari (`new → confirmed → paid → completed / cancelled`) |
+| `spends` | Menejer xarajatlari |
+| `dashboard` | Statistika (lid/bron/moliya) |
 
 Har bir domen backendda ham frontendda ham bir xil nom bilan yuritiladi.

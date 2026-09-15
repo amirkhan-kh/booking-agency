@@ -4,19 +4,21 @@ import { useEffect, useMemo, useState } from "react";
 import { SectionTitle, StatCard } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import { computeFinance, formatUsd } from "@/lib/finance";
-import { MOCK_LEADS, MOCK_MANAGER_SPENDS } from "@/lib/mock-data";
+import type { Lead, ManagerSpend } from "@/lib/types";
+import { loadSpends } from "../../_components/manager-spends-store";
 import { loadLeads } from "../../leads/_components/leads-store";
-import { loadManagerSpends } from "../../_components/manager-spends-store";
 
 export function FinancePanel() {
   const [ready, setReady] = useState(false);
-  const [leads, setLeads] = useState(MOCK_LEADS);
-  const [spends, setSpends] = useState(MOCK_MANAGER_SPENDS);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [spends, setSpends] = useState<ManagerSpend[]>([]);
 
   useEffect(() => {
-    setLeads(loadLeads());
-    setSpends(loadManagerSpends());
-    setReady(true);
+    void Promise.all([loadLeads("all"), loadSpends()]).then(([l, s]) => {
+      setLeads(l);
+      setSpends(s);
+      setReady(true);
+    });
   }, []);
 
   const fin = useMemo(() => computeFinance(leads, spends), [leads, spends]);

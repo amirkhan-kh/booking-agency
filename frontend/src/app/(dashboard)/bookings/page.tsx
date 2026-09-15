@@ -3,10 +3,11 @@ import { Header } from "@/components/layout/header";
 import { Badge } from "@/components/ui/badge";
 import { SectionTitle } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
+import { api } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { bookingStatusLabel } from "@/lib/booking-status";
 import { formatUsd } from "@/lib/finance";
-import { MOCK_BOOKINGS } from "@/lib/mock-data";
+import type { Booking } from "@/lib/types";
 
 function statusTone(status: string) {
   if (status === "paid" || status === "completed") return "ok" as const;
@@ -19,7 +20,14 @@ export default async function BookingsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const rows = MOCK_BOOKINGS.map((b) => ({
+  let bookings: Booking[] = [];
+  try {
+    bookings = await api<Booking[]>("/api/v1/bookings/");
+  } catch {
+    bookings = [];
+  }
+
+  const rows = bookings.map((b) => ({
     id: b.id,
     customer: <span className="font-medium">{b.customer}</span>,
     route: (

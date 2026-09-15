@@ -6,12 +6,13 @@ import { Card, StatCard } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table } from "@/components/ui/table";
 import { computeFinance, formatUsd } from "@/lib/finance";
-import { MOCK_LEADS } from "@/lib/mock-data";
-import type { ManagerSpend } from "@/lib/types";
+import type { Lead, ManagerSpend } from "@/lib/types";
 import { loadLeads } from "../leads/_components/leads-store";
 import {
-  loadManagerSpends,
-  saveManagerSpends,
+  createSpend,
+  deleteSpend,
+  loadSpends,
+  updateSpend,
 } from "./manager-spends-store";
 
 const empty = {
@@ -24,22 +25,22 @@ const empty = {
 
 export function DashboardFinance() {
   const [spends, setSpends] = useState<ManagerSpend[]>([]);
-  const [leads, setLeads] = useState(MOCK_LEADS);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
 
-  useEffect(() => {
-    setSpends(loadManagerSpends());
-    setLeads(loadLeads());
+  async function refresh() {
+    const [s, l] = await Promise.all([loadSpends(), loadLeads("all")]);
+    setSpends(s);
+    setLeads(l);
     setReady(true);
-  }, []);
-
-  function persist(next: ManagerSpend[]) {
-    setSpends(next);
-    saveManagerSpends(next);
   }
+
+  useEffect(() => {
+    void refresh();
+  }, []);
 
   const fin = useMemo(() => computeFinance(leads, spends), [leads, spends]);
 
@@ -79,7 +80,9 @@ export function DashboardFinance() {
               type="button"
               size="sm"
               variant="danger"
-              onClick={() => persist(spends.filter((x) => x.id !== s.id))}
+              onClick={() => {
+                void deleteSpend(s.id).then(refresh);
+              }}
             >
               O‘chirish
             </Button>
@@ -89,10 +92,9 @@ export function DashboardFinance() {
     [spends],
   );
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload: ManagerSpend = {
-      id: editingId ?? `ms${Date.now()}`,
+    const payload = {
       manager: form.manager.trim(),
       item: form.item.trim(),
       amountUsd: Number(form.amountUsd) || 0,
@@ -100,14 +102,12 @@ export function DashboardFinance() {
       note: form.note.trim(),
     };
     if (!payload.manager || !payload.item || payload.amountUsd <= 0) return;
-    persist(
-      editingId
-        ? spends.map((s) => (s.id === editingId ? payload : s))
-        : [payload, ...spends],
-    );
+    if (editingId) await updateSpend(editingId, payload);
+    else await createSpend(payload);
     setOpen(false);
     setEditingId(null);
     setForm(empty);
+    await refresh();
   }
 
   if (!ready) {
@@ -150,39 +150,30 @@ export function DashboardFinance() {
             {formatUsd(fin.expensesUsd)}
           </p>
         </Card>
-        <Card className="p-4">
-          <p className="text-xs text-[var(--text-muted)]">Mijozdan qoldiq</p>
-          <p className="mt-1 text-2xl font-semibold text-[var(--accent)]">
-            {formatUsd(fin.remainingUsd)}
-          </p>
+        <Card className="flex items-center justify-between gap-3 p-4">
+          <div>
+            <p className="font-display text-base font-semibold">Menejer xarajati</p>
+            <p className="text-xs text-[var(--text-muted)]">Qo‘lda qo‘shish</p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => {
+              setEditingId(null);
+              setForm(empty);
+              setOpen(true);
+            }}
+          >
+            + Qo‘shish
+          </Button>
         </Card>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="font-display text-lg font-semibold text-[var(--accent-deep)]">
-          Menejer xarajatlari
-        </h3>
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => {
-            setEditingId(null);
-            setForm(empty);
-            setOpen(true);
-          }}
-        >
-          + Xarajat
-        </Button>
       </div>
 
       {open ? (
         <Card className="p-5">
-          <h4 className="font-medium text-[var(--accent-deep)]">
-            {editingId ? "Xarajatni tahrirlash" : "Yangi xarajat"}
-          </h4>
           <form
-            onSubmit={onSubmit}
-            className="mt-4 grid gap-3 sm:grid-cols-2"
+            onSubmit={(e) => void onSubmit(e)}
+            className="grid gap-3 sm:grid-cols-2"
           >
             <Input
               label="Menejer"
@@ -193,7 +184,7 @@ export function DashboardFinance() {
               required
             />
             <Input
-              label="Nima uchun"
+              label="Xarajat"
               value={form.item}
               onChange={(e) => setForm((f) => ({ ...f, item: e.target.value }))}
               required
@@ -202,7 +193,6 @@ export function DashboardFinance() {
               label="Summa ($)"
               type="number"
               min={0}
-              step="0.01"
               value={form.amountUsd}
               onChange={(e) =>
                 setForm((f) => ({ ...f, amountUsd: e.target.value }))
@@ -214,17 +204,15 @@ export function DashboardFinance() {
               type="date"
               value={form.date}
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-              required
             />
             <Input
               label="Izoh"
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+              className="sm:col-span-2"
             />
-            <div className="flex flex-wrap gap-2 sm:col-span-2">
-              <Button type="submit">
-                {editingId ? "Saqlash" : "Qo‘shish"}
-              </Button>
+            <div className="flex gap-2 sm:col-span-2">
+              <Button type="submit">{editingId ? "Saqlash" : "Qo‘shish"}</Button>
               <Button
                 type="button"
                 variant="ghost"

@@ -7,15 +7,9 @@
   "scripts": {
     "dev": "pnpm --dir frontend dev",
     "build": "pnpm --dir frontend build",
-    "dev:legacy": "pnpm -r --parallel --filter @marquee/api --filter @marquee/web run dev",
-    "dev:api": "pnpm --filter @marquee/api dev",
-    "dev:web": "pnpm --filter @marquee/web dev",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:migrate": "pnpm --filter @marquee/api prisma:migrate",
-    "db:seed": "pnpm --filter @marquee/api prisma:seed",
-    "db:reset": "pnpm --filter @marquee/api prisma:reset",
-    "setup": "pnpm db:up && pnpm --filter @marquee/api setup"
+    "backend": "cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
   },
   "engines": {
     "node": "24.x"

@@ -4,47 +4,44 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 
 ## Phase 0 — Tozalash
 
-- [ ] 0.1 Eski skeletni o'chirish: `apps/`, `packages/`, `pnpm-workspace.yaml`, root `package.json` (docker-compose.yml QOLADI). *(Foydalanuvchi tasdig'i bilan)*
+- [x] 0.1 Eski skeletni o'chirish: `apps/`, `packages/`, `pnpm-workspace.yaml`, root `package.json` (docker-compose.yml QOLADI).
 
 ## Phase 1 — Skelet
 
-- [ ] 1.1 `backend/` skelet: uv init, FastAPI + stack o'rnatish, `app/main.py` health endpoint, `core/config.py`, `core/database.py`
-- [ ] 1.2 Alembic sozlash, bo'sh birinchi migratsiya
-- [x] 1.3 `frontend/` skelet: create-next-app (docs/FRONTEND.md dagi buyruq), papkalar, `lib/api.ts`
-- [ ] 1.4 CORS + frontend↔backend health tekshiruv
+- [x] 1.1 `backend/` skelet: uv init, FastAPI + stack, health, `core/config.py`, `core/database.py`, Docker local
+- [x] 1.2 Alembic + birinchi migratsiya
+- [x] 1.3 `frontend/` skelet: create-next-app, papkalar, `lib/api.ts`
+- [x] 1.4 CORS + frontend↔backend health
 
-## Phase 2 — Backend core
+## Phase 2 — Backend core (tour CRM, lean)
 
-- [ ] 2.1 `users` modeli + migratsiya + seed admin
-- [ ] 2.2 `auth` moduli: login/refresh/logout/me, JWT cookie, `get_current_user`
-- [ ] 2.3 `customers` moduli: model + CRUD
-- [ ] 2.4 `bookings` moduli: model (status oqimi bilan) + CRUD
-- [ ] 2.5 `payments` moduli: model + CRUD (bookingga bog'liq)
-- [ ] 2.6 `tasks` moduli: model + CRUD
-- [ ] 2.7 `dashboard` moduli: statistika endpointi (bookinglar soni, tushum, statuslar kesimi)
-- [ ] 2.8 Rol tekshiruvi (admin/agent) kerakli endpointlarga
+- [x] 2.1 `users` + seed (admin/employee)
+- [x] 2.2 `auth`: login/refresh/logout/me, JWT cookie
+- [x] 2.3 `tours` CRUD
+- [x] 2.4 `leads` CRUD + period filter (day/week/month/3m/1y)
+- [x] 2.5 `customers` CRUD
+- [x] 2.6 `bookings` CRUD (status oqimi)
+- [x] 2.7 `spends` CRUD (manager xarajatlar)
+- [x] 2.8 `dashboard` statistika
+- [x] 2.9 Rol tekshiruvi (admin/employee)
 
 ## Phase 3 — Frontend core
 
-- [x] 3.1 `components/ui/` primitivlar: button, input, table, badge (Tailwind, minimal)
-- [x] 3.2 Login sahifasi + auth Server Action + middleware redirect
-- [x] 3.3 Dashboard layout: sidebar + header
-- [x] 3.4 Dashboard sahifasi (statistika kartalari)
+- [x] 3.1 `components/ui/` primitivlar
+- [x] 3.2 Login + middleware
+- [x] 3.3 Dashboard layout
+- [x] 3.4 Dashboard sahifasi
 
-## Phase 4 — CRM modullari (UI)
+## Phase 4 — CRM UI → real API
 
-- [x] 4.1 Customers: ro'yxat jadvali
-- [x] 4.2 Customers: yaratish/tahrirlash formasi + detal sahifa
-- [x] 4.3 Bookings: ro'yxat jadvali (status badge bilan)
-- [ ] 4.4 Bookings: yaratish/tahrirlash formasi + detal sahifa
-- [ ] 4.5 Bookings: status o'zgartirish amali
-- [ ] 4.6 Payments: ro'yxat + bronga to'lov qo'shish
-- [x] 4.7 Tasks o‘rniga Turlar UI + Lidlar/Kanban CRUD (local)
-- [x] 4.7a Vazifalar sahifasi olib tashlandi
+- [x] 4.1–4.3 Customers/Bookings UI
+- [x] 4.4 Mock olib tashlash; FE↔BE ulash (auth, tours, leads, customers, bookings, spends, dashboard)
+- [x] 4.5 Lidlar: period filter UI (kun/hafta/oy/3 oy/1 yil)
+- [x] 4.7 Turlar + Lidlar Kanban UI
 
 ## Phase 5 — Yakunlash
 
-- [ ] 5.1 Umumiy tekshiruv: barcha oqimlar qo'lda test (login → mijoz → bron → to'lov)
-- [ ] 5.2 Production build tekshiruvi (`pnpm build`, backend import check)
-- [ ] 5.3 README: o'rnatish va ishga tushirish yo'riqnomasi
-- [ ] 5.4 (ixtiyoriy) Deploy sozlamalari — foydalanuvchi talabiga qarab
+- [x] 5.1 Oqim tekshiruv (login → lid → tur → mijoz → bron)
+- [x] 5.2 Build tekshiruv (`pnpm build`)
+- [x] 5.3 README (local Docker + production DATABASE_URL)
+- [ ] 5.4 Deploy — faqat server manzil/parol (`DATABASE_URL`) qoladi
