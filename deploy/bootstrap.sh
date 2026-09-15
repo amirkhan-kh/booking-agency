@@ -38,7 +38,7 @@ EOF
   chmod 600 .env.prod
 fi
 
-docker compose -f docker-compose.prod.yml up -d --build
-docker compose -f docker-compose.prod.yml ps
-curl -sf http://127.0.0.1/health || curl -sf http://127.0.0.1:80/health || true
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+docker compose --env-file .env.prod -f docker-compose.prod.yml ps
+curl -sf http://127.0.0.1/health || true
 echo DEPLOY_DONE
