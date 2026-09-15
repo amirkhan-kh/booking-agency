@@ -19,3 +19,4 @@ __pycache__
 .venv
 .pytest_cache
 backend/.venv
+.env.prod
