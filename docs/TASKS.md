@@ -44,6 +44,8 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 - [x] 5.1 Oqim tekshiruv (login → lid → tur → mijoz → bron)
 - [x] 5.2 Build tekshiruv (`pnpm build`)
 - [x] 5.3 README (local Docker + production DATABASE_URL)
-- [x] 5.4 Deploy — VPS `http://189.74.98.199` (Docker+nginx); domen uchun A-record `docs/DEPLOY.md`
+## Phase 6 — UX
+
+- [x] 6.1 Loading skeleton + empty/error ("Ma'lumot topilmadi") barcha CRM sahifalarda; local backend run
 
 

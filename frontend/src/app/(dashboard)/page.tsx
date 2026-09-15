@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/header";
-import { Card, SectionTitle, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, SectionTitle, StatCard } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { api } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { bookingStatusLabel } from "@/lib/booking-status";
@@ -23,6 +24,7 @@ export default async function DashboardPage() {
   };
   let leads: Lead[] = [];
   let bookings: Booking[] = [];
+  let failed = false;
   try {
     [stats, leads, bookings] = await Promise.all([
       api<DashboardStats>("/api/v1/dashboard/stats"),
@@ -30,7 +32,7 @@ export default async function DashboardPage() {
       api<Booking[]>("/api/v1/bookings/"),
     ]);
   } catch {
-    /* empty until auth cookies ready */
+    failed = true;
   }
 
   return (
@@ -78,6 +80,11 @@ export default async function DashboardPage() {
 
       {isAdmin ? <DashboardFinance /> : null}
 
+      {failed ? (
+        <div className="mt-6">
+          <EmptyState />
+        </div>
+      ) : (
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card className="animate-fade-up stagger-3 p-5">
           <h3 className="font-display text-lg font-semibold">So‘nggi lidlar</h3>
@@ -98,7 +105,9 @@ export default async function DashboardPage() {
               </li>
             ))}
             {leads.length === 0 ? (
-              <li className="text-sm text-[var(--text-muted)]">Lid yo‘q</li>
+              <li>
+                <EmptyState className="border-0 bg-transparent py-8 shadow-none" />
+              </li>
             ) : null}
           </ul>
         </Card>
@@ -133,11 +142,14 @@ export default async function DashboardPage() {
               </li>
             ))}
             {bookings.length === 0 ? (
-              <li className="text-sm text-[var(--text-muted)]">Bron yo‘q</li>
+              <li>
+                <EmptyState className="border-0 bg-transparent py-8 shadow-none" />
+              </li>
             ) : null}
           </ul>
         </Card>
       </div>
+      )}
     </>
   );
 }

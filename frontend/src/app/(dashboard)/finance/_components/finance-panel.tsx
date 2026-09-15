@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { SectionTitle, StatCard } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatCardsSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 import { Table } from "@/components/ui/table";
 import { computeFinance, formatUsd } from "@/lib/finance";
 import type { Lead, ManagerSpend } from "@/lib/types";
@@ -9,16 +11,20 @@ import { loadSpends } from "../../_components/manager-spends-store";
 import { loadLeads } from "../../leads/_components/leads-store";
 
 export function FinancePanel() {
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<"loading" | "ready" | "empty" | "error">(
+    "loading",
+  );
   const [leads, setLeads] = useState<Lead[]>([]);
   const [spends, setSpends] = useState<ManagerSpend[]>([]);
 
   useEffect(() => {
-    void Promise.all([loadLeads("all"), loadSpends()]).then(([l, s]) => {
-      setLeads(l);
-      setSpends(s);
-      setReady(true);
-    });
+    void Promise.all([loadLeads("all"), loadSpends()])
+      .then(([l, s]) => {
+        setLeads(l);
+        setSpends(s);
+        setStatus(l.length || s.length ? "ready" : "empty");
+      })
+      .catch(() => setStatus("error"));
   }, []);
 
   const fin = useMemo(() => computeFinance(leads, spends), [leads, spends]);
@@ -64,8 +70,28 @@ export function FinancePanel() {
     [spends],
   );
 
-  if (!ready) {
-    return <p className="text-sm text-[var(--text-muted)]">Yuklanmoqda…</p>;
+  if (status === "loading") {
+    return (
+      <>
+        <SectionTitle title="Harajatlar va foyda" subtitle="Yuklanmoqda…" />
+        <StatCardsSkeleton />
+        <div className="mt-6">
+          <TableSkeleton rows={4} cols={4} />
+        </div>
+      </>
+    );
+  }
+
+  if (status === "error" || status === "empty") {
+    return (
+      <>
+        <SectionTitle
+          title="Harajatlar va foyda"
+          subtitle="Raqamlar lid to‘lovlari va menejer xarajatlaridan."
+        />
+        <EmptyState />
+      </>
+    );
   }
 
   return (

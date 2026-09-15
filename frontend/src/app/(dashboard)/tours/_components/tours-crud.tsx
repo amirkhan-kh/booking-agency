@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { TableSkeleton } from "@/components/ui/skeleton";
 import { Table } from "@/components/ui/table";
 import type { Tour } from "@/lib/types";
 import { createTour, deleteTour, loadTours, updateTour } from "./tours-store";
@@ -17,21 +19,28 @@ const emptyForm = {
   note: "",
 };
 
+type Status = "loading" | "ready" | "empty" | "error";
+
 export function ToursCrud() {
   const [tours, setTours] = useState<Tour[]>([]);
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<Status>("loading");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
-    setTours(await loadTours());
-    setReady(true);
+    try {
+      const list = await loadTours();
+      setTours(list);
+      setStatus(list.length ? "ready" : "empty");
+    } catch {
+      setTours([]);
+      setStatus("error");
+    }
   }
 
   useEffect(() => {
-    void refresh().catch(() => setError("Turlar yuklanmadi"));
+    void refresh();
   }, []);
 
   const rows = useMemo(
@@ -75,9 +84,7 @@ export function ToursCrud() {
               size="sm"
               variant="danger"
               onClick={() => {
-                void deleteTour(t.id)
-                  .then(refresh)
-                  .catch(() => setError("O‘chirish xato"));
+                void deleteTour(t.id).then(refresh);
               }}
             >
               O‘chirish
@@ -111,12 +118,17 @@ export function ToursCrud() {
       await refresh();
       resetForm();
     } catch {
-      setError("Saqlash xato");
+      setStatus("error");
     }
   }
 
-  if (!ready) {
-    return <p className="text-sm text-[var(--text-muted)]">Yuklanmoqda…</p>;
+  if (status === "loading") {
+    return (
+      <>
+        <SectionTitle title="Turlar katalogi" subtitle="Yuklanmoqda…" />
+        <TableSkeleton rows={5} cols={6} />
+      </>
+    );
   }
 
   return (
@@ -137,9 +149,6 @@ export function ToursCrud() {
           </Button>
         }
       />
-      {error ? (
-        <p className="mb-3 text-sm text-[var(--danger)]">{error}</p>
-      ) : null}
 
       {open ? (
         <Card className="mb-5 p-5">
@@ -207,17 +216,21 @@ export function ToursCrud() {
         </Card>
       ) : null}
 
-      <Table
-        columns={[
-          { key: "title", header: "Tur" },
-          { key: "place", header: "Joy" },
-          { key: "days", header: "Muddat" },
-          { key: "price", header: "Narx" },
-          { key: "note", header: "Izoh" },
-          { key: "actions", header: "Amallar" },
-        ]}
-        rows={rows}
-      />
+      {status === "error" || status === "empty" ? (
+        <EmptyState />
+      ) : (
+        <Table
+          columns={[
+            { key: "title", header: "Tur" },
+            { key: "place", header: "Joy" },
+            { key: "days", header: "Muddat" },
+            { key: "price", header: "Narx" },
+            { key: "note", header: "Izoh" },
+            { key: "actions", header: "Amallar" },
+          ]}
+          rows={rows}
+        />
+      )}
     </>
   );
 }

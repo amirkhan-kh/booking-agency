@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, StatCard } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { StatCardsSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 import { Table } from "@/components/ui/table";
 import { computeFinance, formatUsd } from "@/lib/finance";
 import type { Lead, ManagerSpend } from "@/lib/types";
@@ -26,16 +28,24 @@ const empty = {
 export function DashboardFinance() {
   const [spends, setSpends] = useState<ManagerSpend[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<"loading" | "ready" | "empty" | "error">(
+    "loading",
+  );
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
 
   async function refresh() {
-    const [s, l] = await Promise.all([loadSpends(), loadLeads("all")]);
-    setSpends(s);
-    setLeads(l);
-    setReady(true);
+    try {
+      const [s, l] = await Promise.all([loadSpends(), loadLeads("all")]);
+      setSpends(s);
+      setLeads(l);
+      setStatus(s.length || l.length ? "ready" : "empty");
+    } catch {
+      setSpends([]);
+      setLeads([]);
+      setStatus("error");
+    }
   }
 
   useEffect(() => {
@@ -110,8 +120,21 @@ export function DashboardFinance() {
     await refresh();
   }
 
-  if (!ready) {
-    return <p className="text-sm text-[var(--text-muted)]">Yuklanmoqda…</p>;
+  if (status === "loading") {
+    return (
+      <div className="mt-4 space-y-5">
+        <StatCardsSkeleton />
+        <TableSkeleton rows={3} cols={5} />
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="mt-4">
+        <EmptyState />
+      </div>
+    );
   }
 
   return (

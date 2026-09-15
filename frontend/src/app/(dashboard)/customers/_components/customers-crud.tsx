@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { TableSkeleton } from "@/components/ui/skeleton";
 import { Table } from "@/components/ui/table";
 import type { Customer } from "@/lib/types";
 import {
@@ -29,16 +31,24 @@ const emptyForm = {
   status: "active" as Customer["status"],
 };
 
+type Status = "loading" | "ready" | "empty" | "error";
+
 export function CustomersCrud() {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<Status>("loading");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   async function refresh() {
-    setCustomers(await loadCustomers());
-    setReady(true);
+    try {
+      const list = await loadCustomers();
+      setCustomers(list);
+      setStatus(list.length ? "ready" : "empty");
+    } catch {
+      setCustomers([]);
+      setStatus("error");
+    }
   }
 
   useEffect(() => {
@@ -122,14 +132,23 @@ export function CustomersCrud() {
       status: form.status,
     };
     if (!payload.name || !payload.phone) return;
-    if (editingId) await updateCustomer(editingId, payload);
-    else await createCustomer(payload);
-    await refresh();
-    resetForm();
+    try {
+      if (editingId) await updateCustomer(editingId, payload);
+      else await createCustomer(payload);
+      await refresh();
+      resetForm();
+    } catch {
+      setStatus("error");
+    }
   }
 
-  if (!ready) {
-    return <p className="text-sm text-[var(--text-muted)]">Yuklanmoqda…</p>;
+  if (status === "loading") {
+    return (
+      <>
+        <SectionTitle title="Mijozlar bazasi" subtitle="Yuklanmoqda…" />
+        <TableSkeleton rows={5} cols={6} />
+      </>
+    );
   }
 
   return (
@@ -226,17 +245,21 @@ export function CustomersCrud() {
         </Card>
       ) : null}
 
-      <Table
-        columns={[
-          { key: "name", header: "Ism" },
-          { key: "phone", header: "Telefon" },
-          { key: "trips", header: "Safarlar" },
-          { key: "lastTrip", header: "Oxirgi" },
-          { key: "status", header: "Status" },
-          { key: "actions", header: "Amallar" },
-        ]}
-        rows={rows}
-      />
+      {status === "error" || status === "empty" ? (
+        <EmptyState />
+      ) : (
+        <Table
+          columns={[
+            { key: "name", header: "Ism" },
+            { key: "phone", header: "Telefon" },
+            { key: "trips", header: "Safarlar" },
+            { key: "lastTrip", header: "Oxirgi" },
+            { key: "status", header: "Status" },
+            { key: "actions", header: "Amallar" },
+          ]}
+          rows={rows}
+        />
+      )}
     </>
   );
 }

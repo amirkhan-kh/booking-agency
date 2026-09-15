@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { DetailSkeleton } from "@/components/ui/skeleton";
 import type { Customer } from "@/lib/types";
 import { getCustomer } from "../_components/customers-store";
+
 
 const STATUS_UZ: Record<Customer["status"], string> = {
   active: "Faol",
@@ -27,10 +29,11 @@ export function CustomerDetail({ id }: { id: string }) {
   }, [id]);
 
   if (customer === undefined) {
-    return <p className="text-sm text-[var(--text-muted)]">Yuklanmoqda…</p>;
+    return <DetailSkeleton />;
   }
-  if (customer === null) notFound();
-
+  if (customer === null) {
+    return <EmptyState title="Ma'lumot topilmadi" />;
+  }
   return (
     <>
       <SectionTitle

@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { KanbanSkeleton } from "@/components/ui/skeleton";
 import {
   LEAD_STATUS_COLUMNS,
   leadMargin,
@@ -60,7 +62,9 @@ function emptyLead(tourId = ""): Omit<Lead, "id" | "createdAt"> {
 export function LeadsKanban() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [tours, setTours] = useState<Tour[]>([]);
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<"loading" | "ready" | "empty" | "error">(
+    "loading",
+  );
   const [period, setPeriod] = useState<LeadPeriod>("month");
   const [dragging, setDragging] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -68,13 +72,20 @@ export function LeadsKanban() {
   const [form, setForm] = useState(() => emptyLead());
 
   async function refresh(p: LeadPeriod = period) {
-    const [l, t] = await Promise.all([loadLeads(p), loadTours()]);
-    setLeads(l);
-    setTours(t);
-    setReady(true);
+    try {
+      const [l, t] = await Promise.all([loadLeads(p), loadTours()]);
+      setLeads(l);
+      setTours(t);
+      setStatus(l.length ? "ready" : "empty");
+    } catch {
+      setLeads([]);
+      setTours([]);
+      setStatus("error");
+    }
   }
 
   useEffect(() => {
+    setStatus("loading");
     void refresh(period);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period]);
@@ -155,8 +166,8 @@ export function LeadsKanban() {
     Number(form.paidAmount) || 0,
   );
 
-  if (!ready) {
-    return <p className="text-sm text-[var(--text-muted)]">Yuklanmoqda…</p>;
+  if (status === "loading") {
+    return <KanbanSkeleton />;
   }
 
   return (
@@ -453,6 +464,9 @@ export function LeadsKanban() {
         </Card>
       ) : null}
 
+      {status === "error" ? (
+        <EmptyState />
+      ) : (
       <div className="flex gap-4 overflow-x-auto pb-4">
         {LEAD_STATUS_COLUMNS.map((col) => (
           <div
@@ -540,6 +554,7 @@ export function LeadsKanban() {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }
