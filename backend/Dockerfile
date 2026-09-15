@@ -8,11 +8,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
-
+COPY app ./app
 COPY alembic.ini ./
 COPY alembic ./alembic
-COPY app ./app
+
+RUN uv sync --frozen --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000

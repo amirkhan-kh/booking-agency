@@ -44,4 +44,6 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 - [x] 5.1 Oqim tekshiruv (login → lid → tur → mijoz → bron)
 - [x] 5.2 Build tekshiruv (`pnpm build`)
 - [x] 5.3 README (local Docker + production DATABASE_URL)
-- [~] 5.4 Deploy — VPS (Eskiz) + domain yo'riqnoma
+- [~] 5.4 Deploy — SSH parol rad etildi (189.74.98.199); to‘g‘ri root parol / reset kerak
+
+
