@@ -1,8 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+import { BACKEND_URL } from "./backend-url";
 
 export function apiUrl(path: string): string {
-  if (!API_URL) return path;
-  return `${API_URL}${path}`;
+  // Brauzer: same-origin (`/api/*` → next.config rewrites → backend). Cookie muammosiz.
+  if (typeof window !== "undefined") return path;
+  // Server Component / Action: backendga to‘g‘ridan.
+  return `${BACKEND_URL}${path}`;
 }
 
 /** Backend 422 → maydon bo‘yicha xatolar bilan. */

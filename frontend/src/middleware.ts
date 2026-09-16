@@ -22,7 +22,10 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (session?.role === "employee" && pathname.startsWith("/finance")) {
+  if (
+    session?.role === "employee" &&
+    (pathname.startsWith("/finance") || pathname.startsWith("/settings"))
+  ) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
@@ -32,5 +35,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico).*)"],
 };
