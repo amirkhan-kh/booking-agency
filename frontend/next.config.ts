@@ -8,10 +8,8 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
   async rewrites() {
     // Brauzerdan kelgan /api/* so‘rovlar backendga proxy qilinadi (same-origin → cookie ishlaydi).
-    return [
-      { source: "/api/:path*/", destination: `${BACKEND_URL}/api/:path*/` },
-      { source: "/api/:path*", destination: `${BACKEND_URL}/api/:path*` },
-    ];
+    // `:path(.*)` — trailing slash ham aynan saqlanadi (FastAPI `/leads/` va `/auth/me` ikkalasi ishlaydi).
+    return [{ source: "/api/:path(.*)", destination: `${BACKEND_URL}/api/:path` }];
   },
 };
 
