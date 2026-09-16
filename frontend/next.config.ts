@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 import { BACKEND_URL } from "./src/lib/backend-url";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // standalone — Docker uchun; Vercel'da o‘z output'i (standalone build'ni buzadi).
+  output: process.env.VERCEL ? undefined : "standalone",
   // FastAPI yo‘llari `/api/v1/leads/` ko‘rinishida — trailing slash redirect qilinmasin.
   skipTrailingSlashRedirect: true,
   async rewrites() {
