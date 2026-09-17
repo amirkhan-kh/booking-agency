@@ -20,6 +20,25 @@ export class ApiError extends Error {
   }
 }
 
+let refreshing: Promise<boolean> | null = null;
+
+/** Parallel 401 lar uchun bitta refresh so‘rovi. */
+function refreshSession(): Promise<boolean> {
+  if (!refreshing) {
+    refreshing = fetch(apiUrl("/api/v1/auth/refresh"), {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+    })
+      .then((r) => r.ok)
+      .catch(() => false)
+      .finally(() => {
+        refreshing = null;
+      });
+  }
+  return refreshing;
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (!headers.has("Content-Type") && init?.body) {
@@ -41,12 +60,31 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     }
   }
 
-  const res = await fetch(apiUrl(path), {
+  let res = await fetch(apiUrl(path), {
     ...init,
     credentials: "include",
     headers,
     cache: "no-store",
   });
+
+  // Brauzer: access_token (15 min) tugagan — refresh_token bilan yangilab, bir marta qayta urinamiz.
+  if (
+    res.status === 401 &&
+    typeof window !== "undefined" &&
+    !path.startsWith("/api/v1/auth/")
+  ) {
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      res = await fetch(apiUrl(path), {
+        ...init,
+        credentials: "include",
+        headers,
+        cache: "no-store",
+      });
+    } else {
+      window.location.assign("/login");
+    }
+  }
 
   if (!res.ok) {
     let detail = `API ${res.status}`;
