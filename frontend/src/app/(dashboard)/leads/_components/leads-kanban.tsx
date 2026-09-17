@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Modal } from "@/components/ui/modal";
 import { KanbanSkeleton } from "@/components/ui/skeleton";
 import { formatMoney } from "@/lib/currency";
 import { LEAD_STATUS_COLUMNS } from "@/lib/lead-status";
@@ -153,16 +154,22 @@ export function LeadsKanban() {
         </p>
       ) : null}
 
-      {editor ? (
-        <LeadForm
-          key={editor.id ?? "new"}
-          tours={tours}
-          initial={editor.lead}
-          editing={editor.id !== null}
-          onSubmit={save}
-          onCancel={() => setEditor(null)}
-        />
-      ) : null}
+      <Modal
+        open={editor !== null}
+        title={editor?.id ? "Lidni tahrirlash" : "Yangi lid"}
+        onClose={() => setEditor(null)}
+      >
+        {editor ? (
+          <LeadForm
+            key={editor.id ?? "new"}
+            tours={tours}
+            initial={editor.lead}
+            editing={editor.id !== null}
+            onSubmit={save}
+            onCancel={() => setEditor(null)}
+          />
+        ) : null}
+      </Modal>
 
       {status === "error" ? (
         <EmptyState />
@@ -194,6 +201,17 @@ export function LeadsKanban() {
                 {byStatus[col.id].map((item) => {
                   const tour = tourMap.get(item.tourId);
                   const remaining = Math.max(0, item.grossPrice - item.paidAmount);
+                  const unpaid = item.grossPrice <= 0 || remaining > 0;
+                  const place = [item.country, item.city].filter(Boolean).join(", ");
+                  const route = tour?.title ?? place;
+                  const dest = item.destination
+                    ? item.destination.replace(/_/g, " ")
+                    : "";
+                  const people = item.people
+                    ? `${item.people} kishi`
+                    : item.adults
+                      ? `${item.adults} kishi`
+                      : "";
                   return (
                     <Card
                       key={item.id}
@@ -210,33 +228,57 @@ export function LeadsKanban() {
                         <p className="text-sm font-medium">{item.name}</p>
                         <div className="flex shrink-0 gap-1">
                           {item.source === "google_sheets" ? (
-                            <Badge tone="muted">IG</Badge>
+                            <Badge tone="accent">IG</Badge>
                           ) : null}
-                          <Badge tone="muted">{item.currency}</Badge>
+                          {item.grossPrice > 0 ? (
+                            <Badge tone="muted">{item.currency}</Badge>
+                          ) : null}
                         </div>
                       </div>
-                      <p className="mt-0.5 text-xs text-[var(--text-muted)]">{item.phone}</p>
-                      <p className="mt-1 text-xs text-[var(--text-muted)]">
-                        {tour?.title ?? "Tur yo‘q"} · {item.city || item.country || "—"}
-                        {item.flightStart
-                          ? ` · ${fmtDate(item.flightStart)}${item.flightEnd ? `–${fmtDate(item.flightEnd)}` : ""}`
-                          : ""}
-                      </p>
+                      {item.phone ? (
+                        <p className="mt-0.5 text-xs text-[var(--text-muted)]">{item.phone}</p>
+                      ) : null}
+                      {route || item.flightStart ? (
+                        <p className="mt-1 text-xs text-[var(--text-muted)]">
+                          {[
+                            route,
+                            item.flightStart
+                              ? `${fmtDate(item.flightStart)}${item.flightEnd ? `–${fmtDate(item.flightEnd)}` : ""}`
+                              : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      ) : null}
+                      {dest || people ? (
+                        <p className="mt-1 text-xs text-[var(--text-muted)]">
+                          {[dest ? `Yo‘nalish: ${dest}` : "", people].filter(Boolean).join(" · ")}
+                        </p>
+                      ) : null}
+                      {item.hotel ? (
+                        <p className="mt-1 text-xs text-[var(--text-muted)]">
+                          Mehmonxona: {item.hotel}
+                        </p>
+                      ) : null}
                       <div className="mt-2 flex flex-wrap gap-1.5">
-                        <span className="rounded-lg bg-[rgba(35,111,241,0.08)] px-2 py-0.5 text-xs text-[var(--accent-deep)]">
-                          {formatMoney(item.grossPrice, item.currency, item.exchangeRate)}
-                        </span>
+                        {item.grossPrice > 0 ? (
+                          <span className="rounded-lg bg-[rgba(35,111,241,0.08)] px-2 py-0.5 text-xs text-[var(--accent-deep)]">
+                            {formatMoney(item.grossPrice, item.currency, item.exchangeRate)}
+                          </span>
+                        ) : null}
                         <span
                           className={cn(
                             "rounded-lg px-2 py-0.5 text-xs",
-                            remaining > 0
+                            unpaid
                               ? "bg-[rgba(225,29,72,0.08)] text-[var(--danger)]"
                               : "bg-[rgba(15,159,110,0.08)] text-[var(--ok)]",
                           )}
                         >
-                          {remaining > 0
-                            ? `qoldiq ${formatMoney(remaining, item.currency, item.exchangeRate)}`
-                            : "to‘liq to‘langan"}
+                          {item.grossPrice <= 0
+                            ? "to‘liq to‘lanmagan"
+                            : remaining > 0
+                              ? `qoldiq ${formatMoney(remaining, item.currency, item.exchangeRate)}`
+                              : "to‘liq to‘langan"}
                         </span>
                       </div>
                       {item.ticketTimeLimit ? (

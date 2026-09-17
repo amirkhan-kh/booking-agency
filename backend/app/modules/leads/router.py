@@ -18,10 +18,11 @@ Period = Literal["day", "week", "month", "3m", "1y"]
 @router.get("/", response_model=list[LeadOut])
 async def list_leads(
     period: Period | None = Query(default=None),
+    source: Literal["manual", "google_sheets"] | None = Query(default=None),
     _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[LeadOut]:
-    return await LeadService(db).list(period)
+    return await LeadService(db).list(period, source)
 
 
 @router.get("/{lead_id}", response_model=LeadOut)

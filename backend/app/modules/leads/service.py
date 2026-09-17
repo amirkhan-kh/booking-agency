@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,6 +36,8 @@ def to_out(lead: Lead) -> LeadOut:
         hotel_cancel_deadline=lead.hotel_cancel_deadline,
         full_payment_deadline=lead.full_payment_deadline,
         note=lead.note,
+        destination=lead.destination or "",
+        people=lead.people or "",
         source=lead.source or "manual",
         external_key=lead.external_key,
     )
@@ -53,12 +56,12 @@ class LeadService:
     def __init__(self, db: AsyncSession) -> None:
         self.repo = LeadRepository(db)
 
-    async def list(self, period: str | None = None) -> list[LeadOut]:
-        return [to_out(x) for x in await self.repo.list(period)]
+    async def list(self, period: str | None = None, source: str | None = None) -> list[LeadOut]:
+        return [to_out(x) for x in await self.repo.list(period, source)]
 
     async def get(self, lead_id: uuid.UUID) -> LeadOut:
         lead = await self.repo.get(lead_id)
-        if not lead:
+        if not lead or lead.deleted_at:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Lid topilmadi")
         return to_out(lead)
 
@@ -73,7 +76,7 @@ class LeadService:
 
     async def update(self, lead_id: uuid.UUID, data: LeadUpdate) -> LeadOut:
         lead = await self.repo.get(lead_id)
-        if not lead:
+        if not lead or lead.deleted_at:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Lid topilmadi")
         prev_status = lead.status
         payload = data.model_dump(exclude_unset=True)
@@ -97,6 +100,11 @@ class LeadService:
 
     async def delete(self, lead_id: uuid.UUID) -> None:
         lead = await self.repo.get(lead_id)
-        if not lead:
+        if not lead or lead.deleted_at:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Lid topilmadi")
+        if lead.source == "google_sheets":
+            # Soft-delete: poller qayta tiklamasin
+            lead.deleted_at = datetime.now(UTC)
+            await self.repo.save(lead)
+            return
         await self.repo.delete(lead)

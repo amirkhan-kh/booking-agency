@@ -33,6 +33,8 @@ class LeadOut(CamelModel):
     hotel_cancel_deadline: str
     full_payment_deadline: str
     note: str
+    destination: str = ""
+    people: str = ""
     source: str = "manual"
     external_key: str | None = None
 
@@ -75,7 +77,7 @@ class _LeadFields(CamelModel):
     def _children(cls, val: str | None) -> str | None:
         return None if val is None else v.children_ages(val)
 
-    @field_validator("country", "city", "hotel", "note", check_fields=False)
+    @field_validator("country", "city", "hotel", "note", "destination", "people", check_fields=False)
     @classmethod
     def _strip(cls, val: str | None) -> str | None:
         return None if val is None else val.strip()
@@ -117,6 +119,8 @@ class LeadCreate(_LeadFields):
     hotel_cancel_deadline: str = ""
     full_payment_deadline: str = ""
     note: str = ""
+    destination: str = Field(default="", max_length=200)
+    people: str = Field(default="", max_length=64)
 
 
 class LeadUpdate(_LeadFields):
@@ -143,3 +147,5 @@ class LeadUpdate(_LeadFields):
     hotel_cancel_deadline: str | None = None
     full_payment_deadline: str | None = None
     note: str | None = None
+    destination: str | None = Field(default=None, max_length=200)
+    people: str | None = Field(default=None, max_length=64)

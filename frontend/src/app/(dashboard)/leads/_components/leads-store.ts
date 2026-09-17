@@ -3,9 +3,17 @@ import type { Lead } from "@/lib/types";
 
 export type LeadPeriod = "day" | "week" | "month" | "3m" | "1y" | "all";
 
-export async function loadLeads(period: LeadPeriod = "all"): Promise<Lead[]> {
-  const q = period === "all" ? "" : `?period=${period}`;
-  return api<Lead[]>(`/api/v1/leads/${q}`);
+export type LeadSource = "manual" | "google_sheets";
+
+export async function loadLeads(
+  period: LeadPeriod = "all",
+  source?: LeadSource,
+): Promise<Lead[]> {
+  const params = new URLSearchParams();
+  if (period !== "all") params.set("period", period);
+  if (source) params.set("source", source);
+  const q = params.toString();
+  return api<Lead[]>(`/api/v1/leads/${q ? `?${q}` : ""}`);
 }
 
 export async function createLead(

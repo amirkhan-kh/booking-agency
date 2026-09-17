@@ -87,6 +87,8 @@ class SheetsSyncService:
             existing = await self.repo.get_by_phone(phone)
 
         if existing:
+            if existing.deleted_at:
+                return "skipped"  # CRM da o'chirilgan — qayta tiklanmaydi
             existing.name = name[:200]
             existing.phone = phone[:32]
             existing.status = status
@@ -94,6 +96,8 @@ class SheetsSyncService:
             if city:
                 existing.city = city[:120]
             existing.adults = adults
+            existing.destination = (item.destination or "")[:200]
+            existing.people = (item.people or "")[:64]
             if not existing.note or "Manba: Instagram" in existing.note:
                 existing.note = note
             if not existing.external_key:
@@ -109,6 +113,8 @@ class SheetsSyncService:
             city=city[:120],
             adults=adults,
             note=note,
+            destination=(item.destination or "")[:200],
+            people=(item.people or "")[:64],
             source=SOURCE,
             external_key=key,
         )

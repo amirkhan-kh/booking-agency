@@ -57,6 +57,9 @@ export type Lead = {
   hotelCancelDeadline: string;
   fullPaymentDeadline: string;
   note: string;
+  /** Anketa (Sheets) xom qiymatlari */
+  destination: string;
+  people: string;
   /** manual | google_sheets */
   source?: string;
   externalKey?: string | null;

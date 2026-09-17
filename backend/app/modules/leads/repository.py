@@ -19,11 +19,13 @@ class LeadRepository:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
-    async def list(self, period: str | None = None) -> list[Lead]:
-        stmt = select(Lead).order_by(Lead.created_at.desc())
+    async def list(self, period: str | None = None, source: str | None = None) -> list[Lead]:
+        stmt = select(Lead).where(Lead.deleted_at.is_(None)).order_by(Lead.created_at.desc())
         if period and period in PERIOD_DAYS:
             since = datetime.now(UTC) - timedelta(days=PERIOD_DAYS[period])
             stmt = stmt.where(Lead.created_at >= since)
+        if source:
+            stmt = stmt.where(Lead.source == source)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 

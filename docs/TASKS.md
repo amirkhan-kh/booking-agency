@@ -54,6 +54,7 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 
 - [x] 7.1 Google Sheets (Instagram target) → Lidlar Kanban: webhook upsert, status map, qo'lda lidlar alohida
 - [x] 7.2 Sheets CSV pull (poller): Apps Scriptsiz real-time sync, 25 lid kelishi
+- [x] 7.3 Lid karta dinamik + tahrirlash modal; Mijozlar sahifasi → Sheets lidlar jadvali (delete, pagination); destination/people maydonlari, soft-delete
 
 
 

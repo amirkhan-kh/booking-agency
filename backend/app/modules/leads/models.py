@@ -57,6 +57,11 @@ class Lead(Base):
     hotel_cancel_deadline: Mapped[str] = mapped_column(String(10), nullable=False, default="")
     full_payment_deadline: Mapped[str] = mapped_column(String(10), nullable=False, default="")
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Anketa (Sheets) xom qiymatlari: qaysi_davlatga..., nechi_kishi...
+    destination: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    people: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    # Soft-delete: o'chirilgan lid ro'yxatda chiqmaydi, Sheets poller qayta tiklamaydi
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # manual | google_sheets — qo'lda kiritilgan lidlar source=manual qoladi
     source: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
     # Sheet qatori: "{spreadsheetId}:{row}" — faqat google_sheets uchun

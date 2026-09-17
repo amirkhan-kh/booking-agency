@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input, FieldError, fieldClass } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Select } from "@/components/ui/select";
@@ -54,6 +53,8 @@ type FormState = {
   hotelCancelDeadline: string;
   fullPaymentDeadline: string;
   note: string;
+  destination: string;
+  people: string;
 };
 
 type Errors = Partial<Record<keyof FormState | "form", string | null>>;
@@ -89,6 +90,8 @@ function toForm(lead: Partial<Lead>, tourId: string): FormState {
     hotelCancelDeadline: lead.hotelCancelDeadline ?? "",
     fullPaymentDeadline: lead.fullPaymentDeadline ?? "",
     note: lead.note ?? "",
+    destination: lead.destination ?? "",
+    people: lead.people ?? "",
   };
 }
 
@@ -105,7 +108,7 @@ function validate(f: FormState): Errors {
       phone.local,
       phone.country.code === "XX" ? f.phone.replace(/\D/g, "").slice(0, 3) : "",
     ),
-    tourId: f.tourId ? null : "Tur tanlang",
+    tourId: null,
     assignee: validateName(f.assignee, { required: false, label: "Menejer" }),
     country: /\d/.test(f.country) ? "Mamlakat raqam bo‘lmasin" : null,
     city: /\d/.test(f.city) ? "Shahar raqam bo‘lmasin" : null,
@@ -159,7 +162,9 @@ type Props = {
 };
 
 export function LeadForm({ tours, initial, editing, onSubmit, onCancel }: Props) {
-  const [f, setF] = useState<FormState>(() => toForm(initial, tours[0]?.id ?? ""));
+  const [f, setF] = useState<FormState>(() =>
+    toForm(initial, editing ? "" : tours[0]?.id ?? ""),
+  );
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormState, boolean>>>({});
   const [busy, setBusy] = useState(false);
@@ -260,6 +265,8 @@ export function LeadForm({ tours, initial, editing, onSubmit, onCancel }: Props)
       hotelCancelDeadline: f.hotelCancelDeadline,
       fullPaymentDeadline: f.fullPaymentDeadline,
       note: f.note.trim(),
+      destination: f.destination.trim(),
+      people: f.people.trim(),
     };
 
     setBusy(true);
@@ -282,11 +289,13 @@ export function LeadForm({ tours, initial, editing, onSubmit, onCancel }: Props)
   const warn = passportWarning(f);
 
   return (
-    <Card className="p-5">
-      <h3 className="font-display text-lg font-semibold text-[var(--accent-deep)]">
-        {editing ? "Lidni tahrirlash" : "Yangi lid"}
-      </h3>
-      <form onSubmit={(e) => void submit(e)} noValidate className="mt-4 space-y-5">
+    <div>
+      {initial.source === "google_sheets" ? (
+        <p className="mb-4 text-xs text-[var(--text-muted)]">
+          Manba: Instagram target (Google Sheets)
+        </p>
+      ) : null}
+      <form onSubmit={(e) => void submit(e)} noValidate className="space-y-5">
         {/* Mijoz */}
         <section>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
@@ -331,12 +340,12 @@ export function LeadForm({ tours, initial, editing, onSubmit, onCancel }: Props)
               placeholder="Sara"
             />
             <Select
-              label="Tur *"
+              label="Tur"
               value={f.tourId}
               onChange={(e) => onTourChange(e.target.value)}
               error={show("tourId")}
             >
-              <option value="">Tur tanlang</option>
+              <option value="">Tur tanlanmagan</option>
               {tours.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.title} — {t.city}, {t.country} · {t.durationDays} kun · ${t.basePrice}
@@ -386,6 +395,18 @@ export function LeadForm({ tours, initial, editing, onSubmit, onCancel }: Props)
               label="Mehmonxona"
               value={f.hotel}
               onChange={(e) => set("hotel", e.target.value)}
+            />
+            <Input
+              label="Yo‘nalish (anketa)"
+              value={f.destination}
+              onChange={(e) => set("destination", e.target.value)}
+              placeholder="sharm_el_sheikh"
+            />
+            <Input
+              label="Kishilar soni (anketa)"
+              value={f.people}
+              onChange={(e) => set("people", e.target.value)}
+              placeholder="2-3"
             />
             <Input
               label="Ketish sanasi"
@@ -598,6 +619,6 @@ export function LeadForm({ tours, initial, editing, onSubmit, onCancel }: Props)
           </Button>
         </div>
       </form>
-    </Card>
+    </div>
   );
 }
