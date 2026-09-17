@@ -57,6 +57,9 @@ export type Lead = {
   hotelCancelDeadline: string;
   fullPaymentDeadline: string;
   note: string;
+  /** manual | google_sheets */
+  source?: string;
+  externalKey?: string | null;
 };
 
 export type Customer = {

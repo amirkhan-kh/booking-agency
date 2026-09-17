@@ -33,6 +33,8 @@ class LeadOut(CamelModel):
     hotel_cancel_deadline: str
     full_payment_deadline: str
     note: str
+    source: str = "manual"
+    external_key: str | None = None
 
 
 class _LeadFields(CamelModel):

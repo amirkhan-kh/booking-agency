@@ -10,6 +10,7 @@ from app.modules.auth.router import router as auth_router
 from app.modules.bookings.router import router as bookings_router
 from app.modules.customers.router import router as customers_router
 from app.modules.dashboard.router import router as dashboard_router
+from app.modules.integrations.router import router as integrations_router
 from app.modules.leads.router import router as leads_router
 from app.modules.spends.router import router as spends_router
 from app.modules.tours.router import router as tours_router
@@ -73,6 +74,7 @@ app.include_router(auth_router, prefix=api)
 app.include_router(users_router, prefix=api)
 app.include_router(tours_router, prefix=api)
 app.include_router(leads_router, prefix=api)
+app.include_router(integrations_router, prefix=api)
 app.include_router(customers_router, prefix=api)
 app.include_router(bookings_router, prefix=api)
 app.include_router(spends_router, prefix=api)

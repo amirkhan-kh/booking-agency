@@ -48,13 +48,14 @@ export function LeadsKanban() {
   );
   const [actionError, setActionError] = useState<string | null>(null);
 
-  async function refresh(p: LeadPeriod = period) {
+  async function refresh(p: LeadPeriod = period, opts?: { silent?: boolean }) {
     try {
       const [l, t] = await Promise.all([loadLeads(p), loadTours()]);
       setLeads(l);
       setTours(t);
       setStatus(l.length ? "ready" : "empty");
     } catch {
+      if (opts?.silent) return;
       setLeads([]);
       setTours([]);
       setStatus("error");
@@ -64,6 +65,15 @@ export function LeadsKanban() {
   useEffect(() => {
     setStatus("loading");
     void refresh(period);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period]);
+
+  // Sheets webhook yangilanishlarini yaqin real-time ko‘rsatish
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      void refresh(period, { silent: true });
+    }, 12_000);
+    return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period]);
 
@@ -198,7 +208,12 @@ export function LeadsKanban() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium">{item.name}</p>
-                        <Badge tone="muted">{item.currency}</Badge>
+                        <div className="flex shrink-0 gap-1">
+                          {item.source === "google_sheets" ? (
+                            <Badge tone="muted">IG</Badge>
+                          ) : null}
+                          <Badge tone="muted">{item.currency}</Badge>
+                        </div>
                       </div>
                       <p className="mt-0.5 text-xs text-[var(--text-muted)]">{item.phone}</p>
                       <p className="mt-1 text-xs text-[var(--text-muted)]">

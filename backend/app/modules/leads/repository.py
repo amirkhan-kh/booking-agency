@@ -30,6 +30,12 @@ class LeadRepository:
     async def get(self, lead_id: uuid.UUID) -> Lead | None:
         return await self.db.get(Lead, lead_id)
 
+    async def get_by_external_key(self, external_key: str) -> Lead | None:
+        result = await self.db.execute(
+            select(Lead).where(Lead.external_key == external_key)
+        )
+        return result.scalar_one_or_none()
+
     async def add(self, lead: Lead) -> Lead:
         self.db.add(lead)
         await self.db.commit()

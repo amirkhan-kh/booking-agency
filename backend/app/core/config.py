@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
     cookie_secure: bool = False
     cookie_domain: str | None = None
+    # Google Sheets → CRM webhook (Apps Script `X-Sheets-Secret` header)
+    sheets_webhook_secret: str = ""
+    # CRM status → Sheet yozish (Apps Script Web App URL); bo'sh bo'lsa faqat Sheet→CRM
+    sheets_callback_url: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -57,4 +57,8 @@ class Lead(Base):
     hotel_cancel_deadline: Mapped[str] = mapped_column(String(10), nullable=False, default="")
     full_payment_deadline: Mapped[str] = mapped_column(String(10), nullable=False, default="")
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # manual | google_sheets — qo'lda kiritilgan lidlar source=manual qoladi
+    source: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
+    # Sheet qatori: "{spreadsheetId}:{row}" — faqat google_sheets uchun
+    external_key: Mapped[str | None] = mapped_column(String(120), nullable=True, unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

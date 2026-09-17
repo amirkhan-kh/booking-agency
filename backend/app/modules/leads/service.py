@@ -35,6 +35,8 @@ def to_out(lead: Lead) -> LeadOut:
         hotel_cancel_deadline=lead.hotel_cancel_deadline,
         full_payment_deadline=lead.full_payment_deadline,
         note=lead.note,
+        source=lead.source or "manual",
+        external_key=lead.external_key,
     )
 
 
@@ -63,6 +65,9 @@ class LeadService:
     async def create(self, data: LeadCreate) -> LeadOut:
         payload = data.model_dump()
         payload["tour_id"] = _parse_tour_id(payload.pop("tour_id", None))
+        # Qo'lda yaratilgan lidlar doim manual — Sheets upsert alohida
+        payload["source"] = "manual"
+        payload["external_key"] = None
         lead = Lead(**payload)
         return to_out(await self.repo.add(lead))
 
@@ -70,12 +75,25 @@ class LeadService:
         lead = await self.repo.get(lead_id)
         if not lead:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Lid topilmadi")
+        prev_status = lead.status
         payload = data.model_dump(exclude_unset=True)
         if "tour_id" in payload:
             payload["tour_id"] = _parse_tour_id(payload["tour_id"])
+        # source/external_key API orqali o'zgarmasin
+        payload.pop("source", None)
+        payload.pop("external_key", None)
         for k, val in payload.items():
             setattr(lead, k, val)
-        return to_out(await self.repo.save(lead))
+        saved = await self.repo.save(lead)
+        if (
+            saved.source == "google_sheets"
+            and "status" in payload
+            and saved.status != prev_status
+        ):
+            from app.modules.integrations.service import push_status_to_sheet
+
+            push_status_to_sheet(saved.external_key, saved.status)
+        return to_out(saved)
 
     async def delete(self, lead_id: uuid.UUID) -> None:
         lead = await self.repo.get(lead_id)
