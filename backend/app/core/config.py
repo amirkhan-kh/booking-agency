@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     sheets_webhook_secret: str = ""
     # CRM status → Sheet yozish (Apps Script Web App URL); bo'sh bo'lsa faqat Sheet→CRM
     sheets_callback_url: str = ""
+    # CSV pull — sheet "Anyone with the link" bo'lsa Apps Script shart emas
+    sheets_spreadsheet_id: str = "17rsSPkxRSeAXyTdOP76Bv9uzLXdi3uxAVGd0JI16WBQ"
+    sheets_gid: str = "0"
+    sheets_poll_seconds: int = 30
 
     @property
     def cors_origin_list(self) -> list[str]:

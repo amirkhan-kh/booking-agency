@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 
+import asyncio
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +12,7 @@ from app.modules.auth.router import router as auth_router
 from app.modules.bookings.router import router as bookings_router
 from app.modules.customers.router import router as customers_router
 from app.modules.dashboard.router import router as dashboard_router
+from app.modules.integrations.poller import run_sheets_poll_loop
 from app.modules.integrations.router import router as integrations_router
 from app.modules.leads.router import router as leads_router
 from app.modules.spends.router import router as spends_router
@@ -19,7 +22,13 @@ from app.modules.users.router import router as users_router
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    yield
+    stop = asyncio.Event()
+    task = asyncio.create_task(run_sheets_poll_loop(stop))
+    try:
+        yield
+    finally:
+        stop.set()
+        await task
 
 
 app = FastAPI(title="Booking Agency CRM", version="0.1.0", lifespan=lifespan)

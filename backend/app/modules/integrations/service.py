@@ -26,8 +26,10 @@ log = logging.getLogger(__name__)
 SOURCE = "google_sheets"
 
 
-def _external_key(spreadsheet_id: str, row: int) -> str:
-    return f"{spreadsheet_id}:{row}"
+def _external_key(item: SheetLeadIn) -> str:
+    if item.meta_id:
+        return f"{item.spreadsheet_id}:{item.meta_id}"
+    return f"{item.spreadsheet_id}:row:{item.row}"
 
 
 def _note(destination: str, people: str) -> str:
@@ -60,23 +62,31 @@ class SheetsSyncService:
                 out.errors.append(f"row {item.row}: {exc}")
         return out
 
+    async def sync_from_csv(self) -> SheetSyncOut:
+        from app.modules.integrations.sheets_fetch import fetch_sheet_leads
+
+        leads = fetch_sheet_leads()
+        return await self.sync(SheetSyncIn(leads=leads))
+
     async def _upsert(self, item: SheetLeadIn) -> str:
         phone = normalize_phone(item.phone or item.phone_raw)
         name = " ".join((item.name or "").strip().split())
         if not name or len(name) < 2:
             return "skipped"
-        if not phone.startswith("+") or len(phone) < 8:
+        if not phone.startswith("+") or len(re_sub_digits(phone)) < 10:
             return "skipped"
 
-        key = _external_key(item.spreadsheet_id, item.row)
+        key = _external_key(item)
         status = map_sheet_status(item.lead_status)
         country, city = parse_country(item.destination)
         adults = parse_adults(item.people)
         note = _note(item.destination, item.people)
 
         existing = await self.repo.get_by_external_key(key)
+        if not existing:
+            existing = await self.repo.get_by_phone(phone)
+
         if existing:
-            # Faqat sheet maydonlari — moliya/assignee CRM da qoladi
             existing.name = name[:200]
             existing.phone = phone[:32]
             existing.status = status
@@ -84,9 +94,10 @@ class SheetsSyncService:
             if city:
                 existing.city = city[:120]
             existing.adults = adults
-            # note faqat bo'sh bo'lsa yoki hali sheets-note bo'lsa yangilanadi
             if not existing.note or "Manba: Instagram" in existing.note:
                 existing.note = note
+            if not existing.external_key:
+                existing.external_key = key
             await self.repo.save(existing)
             return "updated"
 
@@ -105,6 +116,10 @@ class SheetsSyncService:
         return "created"
 
 
+def re_sub_digits(phone: str) -> str:
+    return "".join(ch for ch in phone if ch.isdigit())
+
+
 def push_status_to_sheet(external_key: str | None, status: LeadStatus) -> None:
     """CRM → Sheet (sinxron, xato bo'lsa log)."""
     settings = get_settings()
@@ -112,11 +127,17 @@ def push_status_to_sheet(external_key: str | None, status: LeadStatus) -> None:
         return
     if ":" not in external_key:
         return
-    spreadsheet_id, row_s = external_key.rsplit(":", 1)
-    try:
-        row = int(row_s)
-    except ValueError:
-        return
+    # external_key: "{sid}:l:..." yoki "{sid}:row:N"
+    parts = external_key.split(":")
+    spreadsheet_id = parts[0]
+    row = None
+    if len(parts) >= 3 and parts[1] == "row":
+        try:
+            row = int(parts[2])
+        except ValueError:
+            return
+    else:
+        return  # meta_id bilan write-back qator topilmaydi — Apps Script CSV emas
     payload = {
         "spreadsheetId": spreadsheet_id,
         "row": row,

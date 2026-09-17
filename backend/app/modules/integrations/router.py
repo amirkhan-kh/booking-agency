@@ -5,8 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_db
+from app.core.deps import get_current_user
 from app.modules.integrations.schemas import SheetSyncIn, SheetSyncOut
 from app.modules.integrations.service import SheetsSyncService
+from app.modules.users.models import User
 
 router = APIRouter(prefix="/integrations/sheets", tags=["integrations"])
 
@@ -30,3 +32,12 @@ async def sync_sheet_leads(
 ) -> SheetSyncOut:
     """Apps Script → CRM. JWT shart emas — X-Sheets-Secret."""
     return await SheetsSyncService(db).sync(body)
+
+
+@router.post("/pull", response_model=SheetSyncOut)
+async def pull_sheet_leads(
+    _: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SheetSyncOut:
+    """Admin/employee: Sheet CSV dan hozir sync."""
+    return await SheetsSyncService(db).sync_from_csv()

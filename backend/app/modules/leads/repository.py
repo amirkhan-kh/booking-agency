@@ -36,6 +36,10 @@ class LeadRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_phone(self, phone: str) -> Lead | None:
+        result = await self.db.execute(select(Lead).where(Lead.phone == phone).limit(1))
+        return result.scalar_one_or_none()
+
     async def add(self, lead: Lead) -> Lead:
         self.db.add(lead)
         await self.db.commit()

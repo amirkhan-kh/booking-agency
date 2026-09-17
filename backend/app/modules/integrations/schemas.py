@@ -4,7 +4,7 @@ from app.core.schemas import CamelModel
 
 
 class SheetLeadIn(CamelModel):
-    """Bitta Google Sheet qatori (Apps Script yuboradi)."""
+    """Bitta Google Sheet qatori (CSV pull yoki Apps Script)."""
 
     row: int = Field(ge=2)
     spreadsheet_id: str = Field(min_length=8, max_length=120)
@@ -14,6 +14,7 @@ class SheetLeadIn(CamelModel):
     destination: str = ""
     people: str = ""
     lead_status: str = "CREATED"
+    meta_id: str = ""
 
 
 class SheetSyncIn(CamelModel):

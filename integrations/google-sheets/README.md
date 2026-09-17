@@ -1,32 +1,31 @@
 # Google Sheets → Lidlar Kanban
 
-## Oqim
+## Oqim (asosiy)
 
 ```
-Instagram target → Google Sheet → Apps Script (push) → POST /api/v1/integrations/sheets/leads
-                                                         → CRM Lidlar Kanban
-CRM status o‘zgarishi → SHEETS_CALLBACK_URL (Apps Script doPost) → Sheet lead_status
+Instagram → Google Sheet (ochiq CSV)
+     → Backend poller (har 30s)
+     → /api/v1/leads → Lidlar Kanban
 ```
 
-Qo‘lda kiritilgan lidlar `source=manual` — Sheets upsert ularga tegmaydi.
+Apps Script shart emas. Qo‘lda lidlar `source=manual` — telefon bir xil bo‘lsa bog‘lanadi, dublikat yaratilmaydi.
 
 ## Status map
 
-| Sheet `lead_status` | Kanban |
+| Sheet | Kanban |
 |---|---|
 | CREATED | Yangi lid |
 | Qualified | Taklif yuborildi |
-| BOOKED | Bron / oldindan to‘lov |
-| PAID | To‘liq to‘landi |
-| READY | Tayyor / topshirildi |
-| WON | Muvaffaqiyatli |
+| BOOKED / PAID / READY / WON | mos ustunlar |
 
-## Sozlash
+## Env
 
-1. `backend/.env`: `SHEETS_WEBHOOK_SECRET=<maxfiy>`
-2. Sheet → Extensions → Apps Script → `Code.gs` ni yopishtiring; `CONFIG.CRM_URL` va `CONFIG.SECRET` ni to‘ldiring.
-3. Deploy → Web app (Anyone) → URL ni `SHEETS_CALLBACK_URL` ga qo‘ying.
-4. `syncAll()` ni bir marta Run; Trigger: onEdit + har 1 daqiqa `syncAll`.
-5. Backend internetdan ochiq bo‘lishi kerak (local uchun ngrok/cloudflared).
+```
+SHEETS_SPREADSHEET_ID=17rsSPkxRSeAXyTdOP76Bv9uzLXdi3uxAVGd0JI16WBQ
+SHEETS_GID=0
+SHEETS_POLL_SECONDS=30
+```
 
-Ustunlar: M yo‘nalish, N odamlar, O ism, P/Q telefon, R status.
+Sheet: **Anyone with the link can view** bo‘lishi shart (CSV export).
+
+Qo‘shimcha: `POST /api/v1/integrations/sheets/pull` (login) — hozir sync.

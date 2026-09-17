@@ -53,5 +53,7 @@ Qoida: 1 sessiya = 1 task. Tugagach `[x]` belgilanadi. Tartib buzilmaydi.
 ## Phase 7 — Integratsiyalar
 
 - [x] 7.1 Google Sheets (Instagram target) → Lidlar Kanban: webhook upsert, status map, qo'lda lidlar alohida
+- [x] 7.2 Sheets CSV pull (poller): Apps Scriptsiz real-time sync, 25 lid kelishi
+
 
 
