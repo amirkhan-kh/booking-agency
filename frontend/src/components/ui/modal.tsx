@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -26,11 +27,13 @@ export function Modal({ open, title, onClose, children, className }: Props) {
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Portal: ota elementdagi transform/animation (animate-fade-up) fixed
+  // pozitsiyani buzmasin — modal doim viewport markazida.
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[rgba(15,23,42,0.45)] p-4 sm:items-center sm:p-6"
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[rgba(15,23,42,0.45)] p-4 sm:items-center sm:p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -65,6 +68,7 @@ export function Modal({ open, title, onClose, children, className }: Props) {
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
