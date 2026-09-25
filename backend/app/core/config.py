@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # CRM status → Sheet yozish (Apps Script Web App URL); bo'sh bo'lsa faqat Sheet→CRM
     sheets_callback_url: str = ""
     # CSV pull — sheet "Anyone with the link" bo'lsa Apps Script shart emas
-    sheets_spreadsheet_id: str = "17rsSPkxRSeAXyTdOP76Bv9uzLXdi3uxAVGd0JI16WBQ"
+    sheets_spreadsheet_id: str = "1mEgIKtDmQ4IH2H0EsJZ74B-yNCNm42vLMA6zdBuqGd8"
     sheets_gid: str = "0"
     sheets_poll_seconds: int = 30
 
